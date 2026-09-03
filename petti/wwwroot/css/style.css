@@ -1,0 +1,1408 @@
+﻿/* ==========================================================================
+   PETTI — Design System & Master Stylesheet
+   Doorstep pet care + essentials, D2C platform
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   0. Fonts
+   Fredoka  -> display/headline face: rounded, friendly, energetic — matches
+               a pet-care brand without tipping into childish.
+   Inter    -> body/UI face: neutral, highly legible at small sizes.
+   -------------------------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* --------------------------------------------------------------------------
+   1. Design tokens
+   -------------------------------------------------------------------------- */
+:root {
+    /* Canvas & neutral surfaces */
+    --canvas: #FFFFFF;
+    --canvas-porcelain: #FAFAFC;
+    --canvas-mist: #F4F5FA;
+    --ink: #111827;
+    --ink-soft: #4B5566;
+    --ink-faint: #8A93A3;
+    --line: #E5E7EB;
+    /* Vibrant accents */
+    --berry: #FF2E63;
+    --berry-deep: #E60049;
+    --berry-ink: #8C0030;
+    --royal: #2563EB;
+    --royal-bright: #3B82F6;
+    --lavender: #EEF2FF;
+    --periwinkle: #DDD6FE;
+    --sunbeam: #FACC15;
+    /* Derived surfaces */
+    --berry-tint: #FFE7EE;
+    --royal-tint: #E4ECFF;
+    --sunbeam-tint: #FFF8DE;
+    /* Shadows (tinted, never flat grey) */
+    --shadow-berry: 0 20px 40px -18px rgba(230, 0, 73, 0.35);
+    --shadow-royal: 0 20px 40px -18px rgba(37, 99, 235, 0.32);
+    --shadow-ink: 0 20px 45px -22px rgba(17, 24, 39, 0.22);
+    --shadow-soft: 0 10px 30px -14px rgba(17, 24, 39, 0.14);
+    /* Radii */
+    --r-sm: 12px;
+    --r-md: 16px;
+    --r-lg: 20px;
+    --r-xl: 24px;
+    --r-pill: 999px;
+    /* Type scale */
+    --fs-display: clamp(2.6rem, 5vw + 1rem, 4.6rem);
+    --fs-h1: clamp(2.1rem, 3vw + 1rem, 3rem);
+    --fs-h2: clamp(1.6rem, 2vw + 1rem, 2.2rem);
+    --fs-h3: 1.25rem;
+    --fs-body: 1rem;
+    --fs-sm: 0.875rem;
+    --fs-xs: 0.75rem;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--ink);
+    background: var(--canvas);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4,
+.font-display {
+    font-family: 'Fredoka', 'Inter', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    line-height: 1.12;
+}
+
+p {
+    color: var(--ink-soft);
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+::selection {
+    background: var(--berry);
+    color: #fff;
+}
+
+:focus-visible {
+    outline: 3px solid var(--royal);
+    outline-offset: 3px;
+    border-radius: 6px;
+}
+
+.container-petti {
+    width: 100%;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.section {
+    padding: 5.5rem 0;
+}
+
+.section-tight {
+    padding: 3.5rem 0;
+}
+
+@media (max-width: 767px) {
+    .section {
+        padding: 3.5rem 0;
+    }
+}
+
+.eyebrow-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.9rem;
+    background: var(--lavender);
+    color: var(--berry-deep);
+    border-radius: var(--r-pill);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    border: 1px solid var(--periwinkle);
+}
+
+.section-heading {
+    max-width: 640px;
+}
+
+    .section-heading h2 {
+        margin-bottom: 0.6rem;
+    }
+
+    .section-heading p {
+        font-size: 1.05rem;
+        margin-bottom: 0;
+    }
+
+/* --------------------------------------------------------------------------
+   2. Buttons
+   -------------------------------------------------------------------------- */
+.btn-petti {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    padding: 0.85rem 1.7rem;
+    border-radius: var(--r-pill);
+    font-weight: 600;
+    font-size: 0.98rem;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out), background 0.25s var(--ease-out);
+    white-space: nowrap;
+}
+
+    .btn-petti:active {
+        transform: translateY(1px) scale(0.98);
+    }
+
+.btn-berry {
+    background: linear-gradient(135deg, var(--berry) 0%, var(--berry-deep) 100%);
+    color: #fff;
+    box-shadow: var(--shadow-berry);
+}
+
+    .btn-berry:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 26px 45px -16px rgba(230, 0, 73, 0.45);
+        color: #fff;
+    }
+
+.btn-royal-outline {
+    background: #fff;
+    color: var(--royal);
+    border: 2px solid var(--royal);
+}
+
+    .btn-royal-outline:hover {
+        background: var(--royal-tint);
+        transform: translateY(-4px);
+        color: var(--royal);
+    }
+
+.btn-ink-outline {
+    background: transparent;
+    color: var(--ink);
+    border: 2px solid var(--line);
+}
+
+    .btn-ink-outline:hover {
+        border-color: var(--ink);
+        transform: translateY(-3px);
+        color: var(--ink);
+    }
+
+.btn-sm {
+    padding: 0.55rem 1.15rem;
+    font-size: var(--fs-sm);
+}
+
+.btn-icon-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--canvas-mist);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    position: relative;
+    transition: transform 0.2s var(--ease-out), background 0.2s var(--ease-out);
+}
+
+    .btn-icon-circle:hover {
+        transform: translateY(-3px);
+        background: var(--lavender);
+    }
+
+/* --------------------------------------------------------------------------
+   3. Navbar — floating glassmorphism
+   -------------------------------------------------------------------------- */
+.petti-nav {
+    position: fixed;
+    top: 18px;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    transition: top 0.35s var(--ease-out);
+}
+
+.petti-nav-inner {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0.7rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    border-radius: var(--r-xl);
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+    box-shadow: none;
+    transition: background 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out), backdrop-filter 0.35s var(--ease-out), border-color 0.35s var(--ease-out);
+}
+
+    .petti-nav-inner.scrolled {
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        box-shadow: var(--shadow-ink);
+        border-color: var(--line);
+    }
+
+.petti-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--ink);
+    flex-shrink: 0;
+}
+
+    .petti-logo .paw-badge {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--berry) 0%, var(--royal) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.05rem;
+        box-shadow: var(--shadow-berry);
+    }
+
+.nav-search {
+    flex: 1;
+    max-width: 380px;
+    position: relative;
+    display: none;
+}
+
+@media (min-width: 992px) {
+    .nav-search {
+        display: block;
+    }
+}
+
+.nav-search input {
+    width: 100%;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--line);
+    background: var(--canvas-porcelain);
+    padding: 0.6rem 1rem 0.6rem 2.5rem;
+    font-size: var(--fs-sm);
+    transition: border-color 0.2s, background 0.2s;
+}
+
+    .nav-search input:focus {
+        outline: none;
+        border-color: var(--royal-bright);
+        background: #fff;
+    }
+
+.nav-search i {
+    position: absolute;
+    left: 0.95rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ink-faint);
+    font-size: 0.9rem;
+}
+
+.nav-links {
+    display: none;
+    align-items: center;
+    gap: 1.4rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+}
+
+@media (min-width: 1200px) {
+    .nav-links {
+        display: flex;
+    }
+}
+
+.nav-links a {
+    transition: color 0.2s;
+}
+
+    .nav-links a:hover {
+        color: var(--berry-deep);
+    }
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-left: auto;
+}
+
+.cart-trigger {
+    position: relative;
+}
+
+.cart-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 4px;
+    border-radius: 50%;
+    background: var(--berry);
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+}
+
+    .cart-badge.bump {
+        animation: badgeBump 0.4s var(--ease-out);
+    }
+
+@keyframes badgeBump {
+    0% {
+        transform: scale(1);
+    }
+
+    35% {
+        transform: scale(1.5);
+    }
+
+    60% {
+        transform: scale(0.85);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* --------------------------------------------------------------------------
+   4. Hero
+   -------------------------------------------------------------------------- */
+.hero {
+    position: relative;
+    padding: 9.5rem 0 4rem;
+    background: var(--canvas-porcelain);
+    overflow: hidden;
+}
+
+    .hero::before,
+    .hero::after {
+        content: "";
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(10px);
+        opacity: 0.55;
+        z-index: 0;
+    }
+
+    .hero::before {
+        width: 420px;
+        height: 420px;
+        background: radial-gradient(circle at 30% 30%, var(--periwinkle), transparent 70%);
+        top: -120px;
+        right: -100px;
+    }
+
+    .hero::after {
+        width: 320px;
+        height: 320px;
+        background: radial-gradient(circle at 30% 30%, var(--berry-tint), transparent 70%);
+        bottom: -140px;
+        left: -80px;
+    }
+
+.hero-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    align-items: center;
+}
+
+@media (min-width: 992px) {
+    .hero-grid {
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 2rem;
+    }
+}
+
+.hero-copy h1 {
+    margin-bottom: 1.15rem;
+}
+
+    .hero-copy h1 .accent-word {
+        color: var(--berry-deep);
+    }
+
+.hero-copy p.lead {
+    font-size: 1.12rem;
+    max-width: 480px;
+    margin-bottom: 2rem;
+}
+
+.hero-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    margin-bottom: 2.4rem;
+}
+
+.hero-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.stat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+    padding: 0.55rem 1rem 0.55rem 0.6rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ink);
+    box-shadow: var(--shadow-soft);
+    animation: floatChip 5s ease-in-out infinite;
+}
+
+    .stat-chip:nth-child(2) {
+        animation-delay: 0.6s;
+    }
+
+    .stat-chip:nth-child(3) {
+        animation-delay: 1.2s;
+    }
+
+@keyframes floatChip {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-7px);
+    }
+}
+
+.stat-chip .icon-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    color: #fff;
+}
+
+.icon-dot.berry {
+    background: var(--berry);
+}
+
+.icon-dot.royal {
+    background: var(--royal);
+}
+
+.icon-dot.sunbeam {
+    background: var(--sunbeam);
+    color: var(--ink);
+}
+
+.hero-visual {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-visual-card {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    border-radius: var(--r-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-ink);
+}
+
+    .hero-visual-card img {
+        width: 100%;
+        height: 460px;
+        object-fit: cover;
+        display: block;
+    }
+
+.floating-badge {
+    position: absolute;
+    background: #fff;
+    border-radius: var(--r-lg);
+    padding: 0.85rem 1.1rem;
+    box-shadow: var(--shadow-soft);
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    animation: floatChip 6s ease-in-out infinite;
+}
+
+    .floating-badge.badge-top {
+        top: -6%;
+        left: -8%;
+        animation-delay: 0.3s;
+    }
+
+    .floating-badge.badge-bottom {
+        bottom: -6%;
+        right: -6%;
+        animation-delay: 1s;
+    }
+
+    .floating-badge .fb-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.05rem;
+        flex-shrink: 0;
+    }
+
+    .floating-badge .fb-title {
+        font-weight: 700;
+        font-size: 0.92rem;
+        color: var(--ink);
+    }
+
+    .floating-badge .fb-sub {
+        font-size: 0.76rem;
+        color: var(--ink-faint);
+    }
+
+/* --------------------------------------------------------------------------
+   5. Filter pills
+   -------------------------------------------------------------------------- */
+.filter-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+}
+
+.filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.15rem;
+    border-radius: var(--r-pill);
+    background: #fff;
+    border: 1.5px solid var(--line);
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: all 0.22s var(--ease-out);
+}
+
+    .filter-pill:hover {
+        border-color: var(--periwinkle);
+        color: var(--ink);
+        transform: translateY(-2px);
+    }
+
+    .filter-pill.active {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: #fff;
+        box-shadow: var(--shadow-ink);
+    }
+
+/* --------------------------------------------------------------------------
+   6. Service cards
+   -------------------------------------------------------------------------- */
+.service-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    padding: 1.9rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out), border-color 0.3s var(--ease-out);
+}
+
+    .service-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-royal);
+        border-color: transparent;
+    }
+
+.service-card-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--r-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #fff;
+    margin-bottom: 1.15rem;
+}
+
+.service-card h3 {
+    margin-bottom: 0.4rem;
+}
+
+.service-card .service-desc {
+    font-size: 0.92rem;
+    margin-bottom: 1.1rem;
+}
+
+.service-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.1rem;
+    flex-wrap: wrap;
+}
+
+.duration-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--canvas-mist);
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--r-pill);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+}
+
+.price-tag {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--berry-deep);
+    background: var(--berry-tint);
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--r-pill);
+}
+
+.service-checklist {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.4rem;
+    flex-grow: 1;
+}
+
+    .service-checklist li {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.55rem;
+        font-size: 0.86rem;
+        color: var(--ink-soft);
+        margin-bottom: 0.5rem;
+    }
+
+    .service-checklist i {
+        color: var(--royal);
+        margin-top: 0.2rem;
+        font-size: 0.8rem;
+    }
+
+.book-visit-btn {
+    width: 100%;
+    justify-content: space-between;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--r-md);
+    background: var(--canvas-mist);
+    color: var(--ink);
+    font-weight: 700;
+    border: none;
+    display: flex;
+    align-items: center;
+    transition: all 0.25s var(--ease-out);
+}
+
+.service-card:hover .book-visit-btn {
+    background: var(--ink);
+    color: #fff;
+}
+
+/* --------------------------------------------------------------------------
+   7. Product cards
+   -------------------------------------------------------------------------- */
+.product-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+    position: relative;
+}
+
+    .product-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-berry);
+    }
+
+.product-media {
+    position: relative;
+    background: var(--canvas-mist);
+    aspect-ratio: 1 / 0.85;
+    overflow: hidden;
+}
+
+    .product-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s var(--ease-out);
+    }
+
+.product-card:hover .product-media img {
+    transform: scale(1.06);
+}
+
+.stock-badge {
+    position: absolute;
+    top: 0.85rem;
+    left: 0.85rem;
+    background: rgba(255, 255, 255, 0.92);
+    color: #16A34A;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.3rem 0.65rem;
+    border-radius: var(--r-pill);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+    .stock-badge::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #16A34A;
+        animation: pulseGlow 1.8s ease-in-out infinite;
+    }
+
+@keyframes pulseGlow {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5);
+    }
+
+    50% {
+        box-shadow: 0 0 0 5px rgba(22, 163, 74, 0);
+    }
+}
+
+.wishlist-btn {
+    position: absolute;
+    top: 0.85rem;
+    right: 0.85rem;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-faint);
+    transition: color 0.2s, transform 0.2s;
+}
+
+    .wishlist-btn:hover {
+        color: var(--berry);
+        transform: scale(1.1);
+    }
+
+    .wishlist-btn.active {
+        color: var(--berry);
+    }
+
+.product-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.product-category {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--royal);
+    margin-bottom: 0.35rem;
+}
+
+.product-body h3 {
+    font-size: 1.02rem;
+    margin-bottom: 0.4rem;
+}
+
+.rating-row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.7rem;
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+}
+
+    .rating-row .stars i {
+        color: var(--sunbeam);
+        font-size: 0.78rem;
+    }
+
+.product-footer {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+}
+
+.product-price {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+    .product-price .old-price {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--ink-faint);
+        text-decoration: line-through;
+        margin-left: 0.35rem;
+    }
+
+.add-cart-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: none;
+    background: var(--ink);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.25s var(--ease-out), transform 0.2s var(--ease-out);
+}
+
+    .add-cart-btn:hover {
+        background: var(--berry-deep);
+        transform: scale(1.08);
+    }
+
+    .add-cart-btn:active {
+        transform: scale(0.92);
+    }
+
+/* --------------------------------------------------------------------------
+   8. Value grid ("Why Petti at Home?")
+   -------------------------------------------------------------------------- */
+.value-card {
+    border-radius: var(--r-xl);
+    padding: 2.1rem;
+    height: 100%;
+    border: 1px solid transparent;
+    transition: transform 0.3s var(--ease-out);
+}
+
+    .value-card:hover {
+        transform: translateY(-6px);
+    }
+
+    .value-card.tone-berry {
+        background: var(--berry-tint);
+    }
+
+    .value-card.tone-royal {
+        background: var(--royal-tint);
+    }
+
+    .value-card.tone-lavender {
+        background: var(--lavender);
+    }
+
+.value-icon {
+    width: 58px;
+    height: 58px;
+    border-radius: var(--r-md);
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--shadow-soft);
+}
+
+.tone-berry .value-icon {
+    color: var(--berry-deep);
+}
+
+.tone-royal .value-icon {
+    color: var(--royal);
+}
+
+.tone-lavender .value-icon {
+    color: #7C3AED;
+}
+
+.value-card h3 {
+    margin-bottom: 0.5rem;
+}
+
+.value-card p {
+    margin-bottom: 0;
+    font-size: 0.94rem;
+}
+
+/* --------------------------------------------------------------------------
+   9. Testimonials
+   -------------------------------------------------------------------------- */
+.testimonial-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    padding: 1.85rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+}
+
+    .testimonial-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-soft);
+    }
+
+.testimonial-stars i {
+    color: var(--sunbeam);
+    font-size: 0.85rem;
+}
+
+.testimonial-quote {
+    font-size: 0.96rem;
+    color: var(--ink);
+    margin: 1rem 0 1.4rem;
+    flex-grow: 1;
+}
+
+.testimonial-person {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.testimonial-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.testimonial-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--ink);
+}
+
+.testimonial-pet {
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+}
+
+.verified-tag {
+    margin-left: auto;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--royal);
+    background: var(--royal-tint);
+    padding: 0.25rem 0.55rem;
+    border-radius: var(--r-pill);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   10. Footer
+   -------------------------------------------------------------------------- */
+.petti-footer {
+    background: var(--ink);
+    color: #C7CCDA;
+    padding: 4.5rem 0 2rem;
+}
+
+    .petti-footer h4 {
+        color: #fff;
+        font-family: 'Fredoka', sans-serif;
+        font-size: 1.05rem;
+        margin-bottom: 1.1rem;
+    }
+
+    .petti-footer .footer-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        font-family: 'Fredoka', sans-serif;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 1rem;
+    }
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+    .footer-links li {
+        margin-bottom: 0.7rem;
+    }
+
+    .footer-links a {
+        font-size: 0.9rem;
+        transition: color 0.2s;
+    }
+
+        .footer-links a:hover {
+            color: #fff;
+        }
+
+.coverage-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: var(--r-pill);
+    padding: 0.4rem 0.85rem;
+    font-size: 0.78rem;
+    margin: 0 0.5rem 0.5rem 0;
+}
+
+.newsletter-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+    .newsletter-form input {
+        flex: 1;
+        border-radius: var(--r-pill);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.06);
+        color: #fff;
+        padding: 0.7rem 1.1rem;
+        font-size: 0.88rem;
+    }
+
+        .newsletter-form input::placeholder {
+            color: #7C8496;
+        }
+
+        .newsletter-form input:focus {
+            outline: none;
+            border-color: var(--royal-bright);
+        }
+
+.social-row {
+    display: flex;
+    gap: 0.65rem;
+    margin-top: 1.2rem;
+}
+
+.social-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    transition: background 0.2s, transform 0.2s;
+}
+
+    .social-circle:hover {
+        background: var(--berry);
+        transform: translateY(-3px);
+    }
+
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 3rem;
+    padding-top: 1.6rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.8rem;
+    font-size: 0.8rem;
+    color: #838EA3;
+}
+
+.safety-strip {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.82rem;
+    color: #C7CCDA;
+    margin-bottom: 0.7rem;
+}
+
+    .safety-strip i {
+        color: #4ADE80;
+    }
+
+/* --------------------------------------------------------------------------
+   11. Toast — Add to Cart
+   -------------------------------------------------------------------------- */
+.cart-toast {
+    position: fixed;
+    bottom: 1.75rem;
+    right: 1.75rem;
+    z-index: 1100;
+    background: #fff;
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-ink);
+    padding: 0.9rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    min-width: 300px;
+    max-width: 340px;
+    transform: translateY(140%);
+    opacity: 0;
+    transition: transform 0.45s var(--ease-out), opacity 0.45s var(--ease-out);
+    border: 1px solid var(--line);
+}
+
+    .cart-toast.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    .cart-toast img {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--r-sm);
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+.cart-toast-body {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.cart-toast-title {
+    font-weight: 700;
+    font-size: 0.86rem;
+    color: var(--ink);
+}
+
+.cart-toast-sub {
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+}
+
+.cart-toast-price {
+    font-weight: 700;
+    color: var(--berry-deep);
+    font-size: 0.86rem;
+}
+
+.cart-toast-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #16A34A;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+}
+
+@media (max-width: 480px) {
+    .cart-toast {
+        right: 1rem;
+        left: 1rem;
+        min-width: unset;
+        max-width: unset;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   12. Booking modal
+   -------------------------------------------------------------------------- */
+.modal-content.petti-modal {
+    border-radius: var(--r-xl);
+    border: none;
+    box-shadow: var(--shadow-ink);
+    overflow: hidden;
+}
+
+.petti-modal .modal-header {
+    border-bottom: 1px solid var(--line);
+    padding: 1.4rem 1.6rem;
+}
+
+.petti-modal .modal-body {
+    padding: 1.6rem;
+}
+
+.petti-modal .modal-service-name {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.15rem;
+}
+
+.slot-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+    margin: 0.6rem 0 1.3rem;
+}
+
+.slot-btn {
+    border: 1.5px solid var(--line);
+    background: #fff;
+    border-radius: var(--r-md);
+    padding: 0.6rem 0.4rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+    .slot-btn:hover {
+        border-color: var(--royal-bright);
+        color: var(--royal);
+    }
+
+    .slot-btn.selected {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: #fff;
+    }
+
+.form-label-petti {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 0.4rem;
+}
+
+.form-control-petti {
+    border-radius: var(--r-md);
+    border: 1.5px solid var(--line);
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+    .form-control-petti:focus {
+        outline: none;
+        border-color: var(--royal-bright);
+    }
+
+.booking-summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.88rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px dashed var(--line);
+}
+
+    .booking-summary-row:last-child {
+        border-bottom: none;
+        font-weight: 700;
+    }
+
+/* --------------------------------------------------------------------------
+   13. Utilities
+   -------------------------------------------------------------------------- */
+.text-berry {
+    color: var(--berry-deep) !important;
+}
+
+.text-royal {
+    color: var(--royal) !important;
+}
+
+.bg-mist {
+    background: var(--canvas-mist);
+}
+
+.bg-porcelain {
+    background: var(--canvas-porcelain);
+}
+
+.reveal-on-load {
+    animation: riseIn 0.7s var(--ease-out) both;
+}
+
+@keyframes riseIn {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+}

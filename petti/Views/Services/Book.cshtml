@@ -1,0 +1,209 @@
+﻿@model petti.Models.ViewModels.BookingWizardViewModel
+@{
+    ViewData["Title"] = $"Book {Model.ServiceName}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<section class="section" style="padding-top:8.5rem;">
+    <div class="container-petti">
+
+        <div class="breadcrumb-petti">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <i class="fa-solid fa-chevron-right" style="font-size:0.65rem;"></i>
+            <a asp-action="Index">Home Care</a>
+            <i class="fa-solid fa-chevron-right" style="font-size:0.65rem;"></i>
+            <span>Book</span>
+        </div>
+
+        <h1 style="margin-bottom:2rem;">Book: @Model.ServiceName</h1>
+
+        <div class="wizard-steps" id="wizardSteps">
+            <div class="wizard-step active" data-step="1"><span class="wizard-step-dot">1</span><span class="wizard-step-label">Pet Info</span></div>
+            <div class="wizard-step" data-step="2"><span class="wizard-step-dot">2</span><span class="wizard-step-label">Date &amp; Time</span></div>
+            <div class="wizard-step" data-step="3"><span class="wizard-step-dot">3</span><span class="wizard-step-label">Address</span></div>
+            <div class="wizard-step" data-step="4"><span class="wizard-step-dot">4</span><span class="wizard-step-label">Confirm</span></div>
+        </div>
+
+        <form asp-action="Book" method="post" id="bookingForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ServiceId" />
+            <input type="hidden" asp-for="ServiceName" />
+            <input type="hidden" asp-for="ServicePrice" />
+            <input type="hidden" asp-for="PetType" id="hiddenPetType" />
+            <input type="hidden" asp-for="TimeSlot" id="hiddenTimeSlot" />
+            <input type="hidden" asp-for="AppointmentDate" id="hiddenAppointmentDate" />
+
+            <!-- Step 1: Pet Information -->
+            <div class="wizard-panel wizard-page" data-page="1">
+                <h3 style="margin-bottom:1.2rem;">Tell us about your pet</h3>
+
+                <div class="pet-type-pick">
+                    <div class="pet-type-card @(Model.PetType == "Dog" ? "selected" : "")" data-pet="Dog"><i class="fa-solid fa-dog"></i> Dog</div>
+                    <div class="pet-type-card @(Model.PetType == "Cat" ? "selected" : "")" data-pet="Cat"><i class="fa-solid fa-cat"></i> Cat</div>
+                </div>
+
+                <div class="row g-3" style="margin-bottom:0.5rem;">
+                    <div class="col-md-6">
+                        <label class="form-label-petti" asp-for="PetName">Pet name</label>
+                        <input asp-for="PetName" class="form-control-petti" id="inputPetName" placeholder="Max" required />
+                        <span asp-validation-for="PetName" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-petti" asp-for="Breed">Breed</label>
+                        <input asp-for="Breed" class="form-control-petti" placeholder="Wire Fox Terrier" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-petti" asp-for="Age">Age (years)</label>
+                        <input asp-for="Age" class="form-control-petti" placeholder="3" min="0" />
+                    </div>
+                </div>
+
+                <label class="form-label-petti" style="margin-top:0.8rem;">Behavioral / medical notes (optional)</label>
+                <textarea asp-for="BehavioralNotes" class="form-control-petti" rows="2" placeholder="e.g. Nervous around clippers, on joint medication"></textarea>
+
+                <div class="wizard-nav">
+                    <span></span>
+                    <button type="button" class="btn-petti btn-berry next-step">Continue <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Step 2: Date & Time -->
+            <div class="wizard-panel wizard-page" data-page="2" style="display:none;">
+                <h3 style="margin-bottom:1.2rem;">Pick a date &amp; time slot</h3>
+
+                <div class="mb-3">
+                    <label class="form-label-petti">Select Date</label>
+                    <input type="date" class="form-control-petti" id="datePicker"
+                           value="@Model.AppointmentDate.ToString("yyyy-MM-dd")"
+                           min="@DateTime.Today.ToString("yyyy-MM-dd")" style="max-width:280px;" />
+                </div>
+
+                <label class="form-label-petti">Available time slots</label>
+                <div class="slot-grid" style="grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));">
+                    <button type="button" class="slot-btn selected">09:00 – 11:00 AM</button>
+                    <button type="button" class="slot-btn">11:30 – 1:30 PM</button>
+                    <button type="button" class="slot-btn">3:00 – 5:00 PM</button>
+                </div>
+
+                <div class="wizard-nav">
+                    <button type="button" class="btn-petti btn-ink-outline prev-step"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                    <button type="button" class="btn-petti btn-berry next-step">Continue <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Step 3: Address -->
+            <div class="wizard-panel wizard-page" data-page="3" style="display:none;">
+                <h3 style="margin-bottom:1.2rem;">Where should we visit?</h3>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label-petti" asp-for="Area">Amman Area / Neighborhood</label>
+                        <input asp-for="Area" class="form-control-petti" id="inputArea" placeholder="e.g. Abdoun / Khalda" required />
+                        <span asp-validation-for="Area" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-petti" asp-for="ContactPhone">Contact Phone</label>
+                        <input asp-for="ContactPhone" class="form-control-petti" placeholder="079 123 4567" required />
+                        <span asp-validation-for="ContactPhone" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-petti" asp-for="StreetAddress">Street address</label>
+                        <input asp-for="StreetAddress" class="form-control-petti" id="inputStreet" placeholder="Rainbow St." required />
+                        <span asp-validation-for="StreetAddress" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-petti" asp-for="BuildingDetails">Building &amp; Apartment notes</label>
+                        <input asp-for="BuildingDetails" class="form-control-petti" id="inputBuilding" placeholder="Bldg 14, Apt 3" />
+                    </div>
+                </div>
+                <div class="wizard-nav">
+                    <button type="button" class="btn-petti btn-ink-outline prev-step"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                    <button type="button" class="btn-petti btn-berry next-step">Continue <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Step 4: Summary & Confirmation -->
+            <div class="wizard-panel wizard-page" data-page="4" style="display:none;">
+                <h3 style="margin-bottom:1.2rem;">Review &amp; confirm</h3>
+
+                <div class="booking-summary-row"><span>Service</span><span>@Model.ServiceName</span></div>
+                <div class="booking-summary-row"><span>Pet</span><span id="sumPet">@Model.PetName (@Model.PetType)</span></div>
+                <div class="booking-summary-row"><span>Date &amp; time</span><span id="sumSlot">@Model.AppointmentDate.ToString("MMM dd, yyyy") — @Model.TimeSlot</span></div>
+                <div class="booking-summary-row"><span>Address</span><span id="sumAddress">@Model.Area, Amman</span></div>
+
+                <label class="form-label-petti" style="margin-top:1.2rem;">Caregiver checklist</label>
+                <ul class="service-checklist">
+                    <li><i class="fa-solid fa-circle-check"></i> ID-verified specialist dispatched to your address</li>
+                    <li><i class="fa-solid fa-circle-check"></i> All grooming tools sanitized before your visit</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Live status updates from booking to completion</li>
+                </ul>
+
+                <div class="booking-summary-row" style="font-size:1.05rem;">
+                    <span>Total service fee</span>
+                    <span class="text-berry fw-bold">@Model.ServicePrice.ToString("0.00") JOD</span>
+                </div>
+
+                <div class="wizard-nav">
+                    <button type="button" class="btn-petti btn-ink-outline prev-step"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                    <button type="submit" class="btn-petti btn-berry" id="confirmWizardBtn">Confirm Booking <i class="fa-solid fa-check ms-1"></i></button>
+                </div>
+            </div>
+        </form>
+
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        let currentStep = 1;
+
+        function syncSummary() {
+            const petName = document.getElementById('inputPetName').value || 'My Pet';
+            const petType = document.getElementById('hiddenPetType').value;
+            document.getElementById('sumPet').textContent = `${petName} (${petType})`;
+
+            const dateVal = document.getElementById('datePicker').value;
+            const slotVal = document.getElementById('hiddenTimeSlot').value;
+            document.getElementById('hiddenAppointmentDate').value = dateVal;
+            document.getElementById('sumSlot').textContent = `${dateVal} — ${slotVal}`;
+
+            const area = document.getElementById('inputArea').value || 'Amman';
+            const street = document.getElementById('inputStreet').value || '';
+            document.getElementById('sumAddress').textContent = street ? `${street}, ${area}` : area;
+        }
+
+        function goToStep(step) {
+            syncSummary();
+            currentStep = step;
+            document.querySelectorAll('.wizard-page').forEach(p => p.style.display = Number(p.dataset.page) === step ? 'block' : 'none');
+            document.querySelectorAll('.wizard-step').forEach(s => {
+                const n = Number(s.dataset.step);
+                s.classList.toggle('active', n === step);
+                s.classList.toggle('done', n < step);
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.next-step')) goToStep(Math.min(4, currentStep + 1));
+            if (e.target.closest('.prev-step')) goToStep(Math.max(1, currentStep - 1));
+
+            const petCard = e.target.closest('.pet-type-card');
+            if (petCard) {
+                document.querySelectorAll('.pet-type-card').forEach(c => c.classList.remove('selected'));
+                petCard.classList.add('selected');
+                document.getElementById('hiddenPetType').value = petCard.dataset.pet;
+            }
+
+            const slotBtn = e.target.closest('.slot-btn');
+            if (slotBtn) {
+                document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+                slotBtn.classList.add('selected');
+                document.getElementById('hiddenTimeSlot').value = slotBtn.textContent.trim();
+            }
+        });
+
+        document.getElementById('datePicker')?.addEventListener('change', (e) => {
+            document.getElementById('hiddenAppointmentDate').value = e.target.value;
+        });
+    </script>
+}

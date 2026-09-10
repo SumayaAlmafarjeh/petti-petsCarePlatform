@@ -188,4 +188,69 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+
+});
+
+// Global Cart Handling
+async function refreshCartBadge() {
+    try {
+        const res = await fetch('/Cart/GetSummary');
+        if (res.ok) {
+            const data = await res.json();
+            const badge = document.getElementById('cartBadge');
+            if (badge) badge.textContent = data.itemsCount;
+        }
+    } catch (err) {
+        console.error('Error fetching cart summary', err);
+    }
+}
+
+function showCartToast(title, price, img) {
+    const toast = document.getElementById('cartToast');
+    const toastTitle = document.getElementById('toastTitle');
+    const toastPrice = document.getElementById('toastPrice');
+    const toastImg = document.getElementById('toastImg');
+
+    if (toastTitle) toastTitle.textContent = title;
+    if (toastPrice) toastPrice.textContent = `${price} JOD`;
+    if (toastImg && img) toastImg.src = img;
+
+    if (toast) {
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    refreshCartBadge();
+
+    // Attach click event for dynamic add-to-cart buttons
+    document.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.add-to-cart-btn');
+        if (!btn) return;
+
+        e.preventDefault();
+        const productId = btn.dataset.id;
+
+        try {
+            const res = await fetch(`/Cart/AddToCart?productId=${productId}`, {
+                method: 'POST'
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    const badge = document.getElementById('cartBadge');
+                    if (badge) badge.textContent = data.itemsCount;
+                    showCartToast(data.productName, data.price, data.img);
+                }
+            }
+        } catch (err) {
+            console.error('Error adding to cart', err);
+        }
+    });
+
+    document.getElementById('toastClose')?.addEventListener('click', () => {
+        document.getElementById('cartToast')?.classList.remove('show');
+    });
 });

@@ -1,0 +1,280 @@
+﻿@model IEnumerable<petti.Models.Testimonial>
+@{
+    ViewData["Title"] = "Testimonial Moderation";
+    ViewData["HeaderTitle"] = "Testimonial Moderation";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show rounded-4 mb-4" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- KPIs Header -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-4">
+        <div class="admin-panel p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted small">Awaiting Approval</span>
+                <span class="badge bg-warning-subtle text-warning p-2 rounded-3"><i class="fa-solid fa-hourglass-half"></i></span>
+            </div>
+            <h3 class="h4 mb-0 fw-bold" id="kpiPending">@ViewBag.PendingCount</h3>
+            <span class="text-muted small">Submitted by pet parents</span>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="admin-panel p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted small">Approved & Live</span>
+                <span class="badge bg-success-subtle text-success p-2 rounded-3"><i class="fa-solid fa-check"></i></span>
+            </div>
+            <h3 class="h4 mb-0 fw-bold" id="kpiApproved">@ViewBag.ApprovedCount</h3>
+            <span class="text-muted small">Visible on homepage</span>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="admin-panel p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted small">Rejected</span>
+                <span class="badge bg-danger-subtle text-danger p-2 rounded-3"><i class="fa-solid fa-ban"></i></span>
+            </div>
+            <h3 class="h4 mb-0 fw-bold" id="kpiRejected">@ViewBag.RejectedCount</h3>
+            <span class="text-muted small">Hidden from public</span>
+        </div>
+    </div>
+</div>
+
+<div class="admin-panel">
+    <!-- Filter Bar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div class="d-flex flex-wrap gap-2 flex-grow-1" style="max-width: 500px;">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-sm btn-berry text-white fw-semibold px-3 testimonial-tab-btn" data-status="Pending">Pending</button>
+                <button type="button" class="btn btn-sm btn-light border fw-semibold px-3 testimonial-tab-btn" data-status="Approved">Approved</button>
+                <button type="button" class="btn btn-sm btn-light border fw-semibold px-3 testimonial-tab-btn" data-status="Rejected">Rejected</button>
+                <button type="button" class="btn btn-sm btn-light border fw-semibold px-3 testimonial-tab-btn" data-status="all">All</button>
+            </div>
+        </div>
+        <span class="text-muted small" id="testimonialCount">Showing 0 testimonials</span>
+    </div>
+
+    <!-- Testimonials Table -->
+    <div style="overflow-x:auto;">
+        <table class="table-petti w-100 align-middle mb-0" id="testimonialsTable">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">Avatar</th>
+                    <th>Customer</th>
+                    <th>Rating</th>
+                    <th style="min-width: 280px;">Feedback Quote</th>
+                    <th>Status</th>
+                    <th style="width: 130px;">Moderate</th>
+                </tr>
+            </thead>
+            <tbody id="testimonialsBody">
+                @foreach (var t in Model)
+                {
+                    var status = t.Status ?? "Pending";
+                    var avatar = string.IsNullOrWhiteSpace(t.ClientImageUrl)
+                        ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop"
+                        : t.ClientImageUrl;
+
+                    var statusBadgeClass = status switch
+                    {
+                        "Approved" => "status-delivered",
+                        "Rejected" => "badge rounded-pill bg-danger-subtle text-danger border px-3 py-1",
+                        _ => "status-processing"
+                    };
+
+                    <tr class="admin-testimonial-row" data-id="@t.TestimonialId" data-status="@status">
+                        <td>
+                            <img src="@avatar" alt="@t.ClientName" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--line);">
+                        </td>
+                        <td>
+                            <strong style="color:var(--ink);">@t.ClientName</strong>
+                            <div style="font-size:0.75rem; color:var(--ink-faint);">@(t.PetInfo ?? "Pet Parent")</div>
+                        </td>
+                        <td>
+                            <div class="text-sunbeam small">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <i class="fa-solid fa-star @(i <= t.Rating ? "" : "text-muted opacity-25")"></i>
+                                }
+                            </div>
+                        </td>
+                        <td>
+                            <p class="mb-0 small text-muted fst-italic" style="line-height:1.45;">"@t.Feedback"</p>
+                        </td>
+                        <td>
+                            <span class="status-badge @statusBadgeClass" id="status-badge-@t.TestimonialId">@status</span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-1">
+                                <!-- Approve Button -->
+                                <button type="button" class="table-icon-btn text-success border-0 bg-transparent"
+                                        onclick="moderateTestimonial(@t.TestimonialId, 'Approved')" title="Approve & Show on Home">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                                <!-- Reject Button -->
+                                <button type="button" class="table-icon-btn text-warning border-0 bg-transparent"
+                                        onclick="moderateTestimonial(@t.TestimonialId, 'Rejected')" title="Reject">
+                                    <i class="fa-solid fa-ban"></i>
+                                </button>
+                                <!-- Delete Button -->
+                                <form asp-action="DeleteTestimonial" asp-route-id="@t.TestimonialId" method="post" class="d-inline" onsubmit="return confirm('Delete this testimonial permanently?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="table-icon-btn text-danger border-0 bg-transparent" title="Delete">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Empty State -->
+    <div id="testimonialsEmpty" class="text-center p-5" style="display:none;">
+        <i class="fa-solid fa-quote-left text-muted mb-3" style="font-size: 2.5rem;"></i>
+        <h5 class="fw-bold">Nothing to moderate here</h5>
+        <p class="text-muted small mb-0">Customer testimonials matching this filter will show up here.</p>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pt-3 border-top mt-3" id="paginationWrapper">
+        <div class="text-muted small" id="paginationInfo">Showing 0 to 0 of 0 entries</div>
+        <div class="d-flex align-items-center gap-1" id="paginationControls"></div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        const pageSize = 10;
+        let currentPage = 1;
+        let activeStatusTab = 'Pending';
+        let visibleRows = [];
+
+        const allRows = Array.from(document.querySelectorAll('.admin-testimonial-row'));
+        const paginationControls = document.getElementById('paginationControls');
+        const paginationInfo = document.getElementById('paginationInfo');
+        const paginationWrapper = document.getElementById('paginationWrapper');
+        const emptyState = document.getElementById('testimonialsEmpty');
+        const countLabel = document.getElementById('testimonialCount');
+
+        function applyFilterAndPagination() {
+            visibleRows = allRows.filter(row => {
+                const status = row.dataset.status;
+                return (activeStatusTab === 'all' || status === activeStatusTab);
+            });
+
+            const totalPages = Math.ceil(visibleRows.length / pageSize) || 1;
+            if (currentPage > totalPages) currentPage = 1;
+
+            allRows.forEach(r => r.style.display = 'none');
+
+            if (visibleRows.length === 0) {
+                emptyState.style.display = 'block';
+                document.getElementById('testimonialsTable').style.display = 'none';
+            } else {
+                emptyState.style.display = 'none';
+                document.getElementById('testimonialsTable').style.display = '';
+                const start = (currentPage - 1) * pageSize;
+                const end = start + pageSize;
+                visibleRows.slice(start, end).forEach(r => r.style.display = '');
+            }
+
+            const startCount = visibleRows.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+            const endCount = Math.min(currentPage * pageSize, visibleRows.length);
+            paginationInfo.textContent = `Showing ${startCount} to ${endCount} of ${visibleRows.length} entries`;
+            countLabel.textContent = `${visibleRows.length} testimonial${visibleRows.length === 1 ? '' : 's'}`;
+
+            renderPaginationButtons(totalPages);
+        }
+
+        function renderPaginationButtons(totalPages) {
+            paginationControls.innerHTML = '';
+
+            if (visibleRows.length <= pageSize) {
+                paginationWrapper.style.display = visibleRows.length === 0 ? 'none' : 'flex';
+                return;
+            } else {
+                paginationWrapper.style.display = 'flex';
+            }
+
+            const prevBtn = document.createElement('button');
+            prevBtn.type = 'button';
+            prevBtn.className = `btn btn-sm btn-light border rounded-3 px-2 ${currentPage === 1 ? 'disabled opacity-50' : ''}`;
+            prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left" style="font-size:0.75rem;"></i>';
+            prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; applyFilterAndPagination(); } };
+            paginationControls.appendChild(prevBtn);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.type = 'button';
+                const isActive = (i === currentPage);
+                pageBtn.className = `btn btn-sm rounded-3 px-3 fw-semibold ${isActive ? 'btn-berry text-white' : 'btn-light border'}`;
+                pageBtn.textContent = i;
+                pageBtn.onclick = () => { currentPage = i; applyFilterAndPagination(); };
+                paginationControls.appendChild(pageBtn);
+            }
+
+            const nextBtn = document.createElement('button');
+            nextBtn.type = 'button';
+            nextBtn.className = `btn btn-sm btn-light border rounded-3 px-2 ${currentPage === totalPages ? 'disabled opacity-50' : ''}`;
+            nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right" style="font-size:0.75rem;"></i>';
+            nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; applyFilterAndPagination(); } };
+            paginationControls.appendChild(nextBtn);
+        }
+
+        document.querySelectorAll('.testimonial-tab-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.testimonial-tab-btn').forEach(b => {
+                    b.classList.remove('btn-berry', 'text-white');
+                    b.classList.add('btn-light', 'border');
+                });
+                this.classList.remove('btn-light', 'border');
+                this.classList.add('btn-berry', 'text-white');
+
+                activeStatusTab = this.dataset.status;
+                currentPage = 1;
+                applyFilterAndPagination();
+            });
+        });
+
+        async function moderateTestimonial(id, newStatus) {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('status', newStatus);
+            formData.append('__RequestVerificationToken', token);
+
+            const res = await fetch('/Admin/ModerateTestimonial', { method: 'POST', body: formData });
+            const data = await res.json();
+
+            if (data.success) {
+                const row = document.querySelector(`.admin-testimonial-row[data-id="${id}"]`);
+                if (row) {
+                    row.dataset.status = newStatus;
+                    const badge = document.getElementById(`status-badge-${id}`);
+                    badge.textContent = newStatus;
+                    badge.className = 'status-badge ' + (newStatus === 'Approved' ? 'status-delivered' : newStatus === 'Rejected' ? 'badge rounded-pill bg-danger-subtle text-danger border px-3 py-1' : 'status-processing');
+                }
+
+                document.getElementById('kpiPending').textContent = data.pending;
+                document.getElementById('kpiApproved').textContent = data.approved;
+                document.getElementById('kpiRejected').textContent = data.rejected;
+
+                applyFilterAndPagination();
+            }
+        }
+
+        applyFilterAndPagination();
+    </script>
+}

@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@using petti.Models
+@inject SignInManager<ApplicationUser> SignInManager
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -22,29 +26,76 @@
     <nav class="petti-nav">
         <div class="petti-nav-inner" id="navInner">
 
+            <!-- Logo -->
             <a asp-controller="Home" asp-action="Index" class="petti-logo">
-                <span class="paw-badge"><i class="fa-solid fa-paw"></i></span>
-                Petti
+                <img src="~/images/logo.png" asp-append-version="true" alt="Petti Logo" class="site-logo">
             </a>
 
-            <div class="nav-search">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" placeholder="Search food, toys, grooming...">
-            </div>
-
+            <!-- Navigation Links -->
             <div class="nav-links">
-                <a href="#services">Home Care</a>
-                <a href="#products">Shop</a>
-                <a href="#why-petti">Why Petti</a>
-                <a href="#testimonials">Reviews</a>
+                <a href="/#services">Home Care</a>
+                <a href="/#products">Shop</a>
+                <a href="/#why-petti">Why Petti</a>
+                <a href="/#testimonials">Stories</a>
+
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <a asp-controller="Bookings" asp-action="Index">My Bookings</a>
+                    <a asp-controller="Orders" asp-action="Index">My Orders</a>
+                }
             </div>
 
+            <!-- Auth & Cart Actions -->
             <div class="nav-actions">
-                <partial name="_LoginPartial" />
-                <button class="btn-icon-circle cart-trigger" aria-label="Open cart" data-bs-toggle="tooltip" title="Your cart">
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <div class="dropdown">
+                        <button class="btn-icon-circle dropdown-toggle border-0"
+                                type="button"
+                                id="profileDropdown"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                                title="Account Options"
+                                style="cursor: pointer;">
+                            <i class="fa-solid fa-user"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end petti-dropdown-menu shadow-soft" aria-labelledby="profileDropdown">
+                            <li>
+                                <a class="dropdown-item petti-dropdown-item" asp-controller="Profile" asp-action="Index">
+                                    <i class="fa-regular fa-id-badge me-2"></i> View Profile
+                                </a>
+                            </li>
+
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li>
+                                    <a class="dropdown-item petti-dropdown-item text-primary" asp-controller="Admin" asp-action="Index">
+                                        <i class="fa-solid fa-gauge me-2"></i> Admin Dashboard
+                                    </a>
+                                </li>
+                            }
+
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post" class="d-inline">
+                                    <button type="submit" class="dropdown-item petti-dropdown-item text-berry border-0 bg-transparent w-100 text-start">
+                                        <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Log out
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <a asp-area="Identity" asp-page="/Account/Login" class="btn-petti btn-ink-outline btn-sm">Sign In</a>
+                    <a asp-area="Identity" asp-page="/Account/Register" class="btn-petti btn-berry btn-sm text-white text-decoration-none">Register</a>
+                }
+
+                <a asp-controller="Cart" asp-action="Index" class="btn-icon-circle cart-trigger" aria-label="Open cart">
                     <i class="fa-solid fa-bag-shopping"></i>
                     <span class="cart-badge" id="cartBadge">0</span>
-                </button>
+                </a>
             </div>
 
         </div>
@@ -62,7 +113,11 @@
         <div class="container-petti">
             <div class="row g-4">
                 <div class="col-lg-4">
-                    <div class="footer-logo"><i class="fa-solid fa-paw"></i> Petti</div>
+                    <div class="footer-logo">
+                        <a asp-controller="Home" asp-action="Index" class="petti-logo">
+                            <img src="~/images/logoWhite.png" asp-append-version="true" alt="Petti Logo" class="site-logo">
+                        </a>
+                    </div>
                     <p style="color:#9AA2B3; font-size:0.9rem; max-width:320px;">Doorstep pet essentials and certified at-home care, in one platform built around your pet's comfort.</p>
                     <div class="safety-strip" style="margin-top:1.2rem;"><i class="fa-solid fa-shield-check"></i> Every caregiver is ID-verified and background-checked</div>
                     <div class="social-row">
@@ -75,19 +130,19 @@
                 <div class="col-6 col-lg-2">
                     <h4>Shop</h4>
                     <ul class="footer-links">
-                        <li><a href="#products">Food</a></li>
-                        <li><a href="#products">Toys</a></li>
-                        <li><a href="#products">Health</a></li>
-                        <li><a href="#products">Bathing supplies</a></li>
+                        <li><a href="/#products">Food</a></li>
+                        <li><a href="/#products">Toys</a></li>
+                        <li><a href="/#products">Health</a></li>
+                        <li><a href="/#products">Bathing supplies</a></li>
                     </ul>
                 </div>
 
                 <div class="col-6 col-lg-2">
                     <h4>Home Care</h4>
                     <ul class="footer-links">
-                        <li><a href="#services">Grooming</a></li>
-                        <li><a href="#services">Bathing</a></li>
-                        <li><a href="#services">Sitting</a></li>
+                        <li><a href="/#services">Grooming</a></li>
+                        <li><a href="/#services">Bathing</a></li>
+                        <li><a href="/#services">Nail & Paw Care</a></li>
                         <li><a href="#">Become a caregiver</a></li>
                     </ul>
                 </div>

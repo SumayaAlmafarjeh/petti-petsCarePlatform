@@ -1,0 +1,141 @@
+﻿@model petti.Models.ViewModels.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    ViewData["HeaderTitle"] = "Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="admin-panel p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted small">Total Revenue</span>
+                <span class="badge bg-success-subtle text-success p-2 rounded-3"><i class="fa-solid fa-coins"></i></span>
+            </div>
+            <h3 class="h4 mb-0 fw-bold text-berry">@Model.TotalRevenue.ToString("0.00") JOD</h3>
+            <span class="text-muted small">Lifetime sales & bookings</span>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="admin-panel p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted small">Total Orders</span>
+                <span class="badge bg-primary-subtle text-primary p-2 rounded-3"><i class="fa-solid fa-clipboard-check"></i></span>
+            </div>
+            <h3 class="h4 mb-0 fw-bold">@Model.TotalOrdersCount</h3>
+            <span class="text-warning small fw-semibold">@Model.PendingOrdersCount Pending Orders</span>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="admin-panel p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted small">Home Care Visits</span>
+                <span class="badge bg-info-subtle text-info p-2 rounded-3"><i class="fa-solid fa-calendar-check"></i></span>
+            </div>
+            <h3 class="h4 mb-0 fw-bold">@Model.TodayBookings.Count</h3>
+            <span class="text-muted small">Scheduled visits</span>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="admin-panel p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted small">Registered Customers</span>
+                <span class="badge bg-purple-subtle text-purple p-2 rounded-3"><i class="fa-solid fa-users"></i></span>
+            </div>
+            <h3 class="h4 mb-0 fw-bold">@Model.TotalCustomersCount</h3>
+            <span class="text-muted small">Active pet owners</span>
+        </div>
+    </div>
+</div>
+
+<!-- Main Feeds Row -->
+<div class="row g-4">
+    <!-- Today's Visits Panel -->
+    <div class="col-lg-6">
+        <div class="admin-panel">
+            <div class="admin-panel-head">
+                <h3>Today's Home Visits</h3>
+            </div>
+
+            @if (!Model.TodayBookings.Any())
+            {
+                <div class="p-4 text-center text-muted">
+                    <i class="fa-solid fa-calendar-day fs-3 mb-2"></i>
+                    <p class="mb-0">No visits scheduled for today.</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var b in Model.TodayBookings)
+                {
+                    <div class="admin-feed-row">
+                        <span class="admin-feed-avatar">
+                            <i class="fa-solid @(b.PetType?.ToLower() == "cat" ? "fa-cat" : "fa-dog")"></i>
+                        </span>
+                        <div style="flex:1;">
+                            <strong style="font-size:0.9rem;">@b.Service.Name — @b.PetName</strong>
+                            <div style="font-size:0.78rem;color:var(--ink-faint);">@b.TimeSlot · @b.Area</div>
+                        </div>
+
+                        @if (b.Status == "Confirmed")
+                        {
+                            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2 small">
+                                <i class="fa-solid fa-check me-1"></i> Confirmed
+                            </span>
+                        }
+                        else
+                        {
+                            <form asp-action="ConfirmBooking" asp-route-id="@b.BookingId" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn-petti btn-berry btn-sm">Confirm</button>
+                            </form>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- Recent Orders Panel -->
+    <div class="col-lg-6">
+        <div class="admin-panel">
+            <div class="admin-panel-head">
+                <h3>Recent Orders</h3>
+            </div>
+
+            @if (!Model.RecentOrders.Any())
+            {
+                <div class="p-4 text-center text-muted">
+                    <i class="fa-solid fa-box-open fs-3 mb-2"></i>
+                    <p class="mb-0">No orders placed yet.</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var o in Model.RecentOrders)
+                {
+                    var initials = "PT";
+                    var name = o.Customer?.FullName ?? "Customer";
+                    var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length > 1) initials = $"{parts[0][0]}{parts[1][0]}".ToUpper();
+                    else if (parts.Length == 1) initials = $"{parts[0][0]}".ToUpper();
+
+                    var badgeClass = o.Status == "Delivered" || o.Status == "Completed" ? "status-delivered" :
+                                     o.Status == "Shipped" ? "status-shipped" : "status-processing";
+
+                    <div class="admin-feed-row">
+                        <span class="admin-feed-avatar">@initials</span>
+                        <div style="flex:1;">
+                            <strong style="font-size:0.9rem;">@name</strong>
+                            <div style="font-size:0.78rem;color:var(--ink-faint);">Order #PT-@o.OrderId · @o.TotalAmount.ToString("0.00") JOD</div>
+                        </div>
+                        <span class="status-badge @badgeClass">@o.Status</span>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>

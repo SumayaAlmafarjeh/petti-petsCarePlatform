@@ -1,0 +1,186 @@
+﻿@model petti.Models.ViewModels.CheckoutViewModel
+@{
+    ViewData["Title"] = "Checkout — Petti";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<header class="page-header">
+    <div class="container-petti">
+        <div class="breadcrumb-petti">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <i class="fa-solid fa-chevron-right" style="font-size:0.65rem;"></i>
+            <a asp-action="Index">Cart</a>
+            <i class="fa-solid fa-chevron-right" style="font-size:0.65rem;"></i>
+            <span>Checkout</span>
+        </div>
+        <h1>Checkout</h1>
+    </div>
+</header>
+
+<section class="section-tight">
+    <div class="container-petti">
+        <form asp-action="Checkout" method="post" id="checkoutForm" class="row g-4">
+            @Html.AntiForgeryToken()
+
+            <!-- Left Form Column -->
+            <div class="col-lg-8">
+
+                <!-- Delivery Information -->
+                <div class="checkout-panel mb-4">
+                    <h3>Delivery Information</h3>
+
+                    <div class="address-option selected" data-area="@(string.IsNullOrEmpty(Model.Area) ? "Abdoun" : Model.Area)" data-street="@(string.IsNullOrEmpty(Model.StreetAddress) ? "Bldg 14, Apt 3" : Model.StreetAddress)">
+                        <strong>Home</strong> — @(string.IsNullOrEmpty(Model.Area) ? "Abdoun" : Model.Area), @(string.IsNullOrEmpty(Model.StreetAddress) ? "Bldg 14, Apt 3" : Model.StreetAddress)
+                    </div>
+                    <div class="address-option" data-area="Sweifieh" data-street="Paris St, Bldg 2">
+                        <strong>Office</strong> — Sweifieh, Paris St, Bldg 2
+                    </div>
+
+                    <button type="button" class="btn-petti btn-ink-outline btn-sm" id="newAddressBtn" style="margin:0.6rem 0 1.2rem;">
+                        <i class="fa-solid fa-plus me-1"></i> Add new address
+                    </button>
+
+                    <!-- Hidden Inputs synced for Post -->
+                    <input type="hidden" asp-for="Area" id="finalArea" value="@(string.IsNullOrEmpty(Model.Area) ? "Abdoun" : Model.Area)" />
+                    <input type="hidden" asp-for="StreetAddress" id="finalStreet" value="@(string.IsNullOrEmpty(Model.StreetAddress) ? "Bldg 14, Apt 3" : Model.StreetAddress)" />
+
+                    <div id="newAddressForm" style="display:none;">
+                        <div class="row g-3" style="margin-bottom:1rem;">
+                            <div class="col-md-6">
+                                <label class="form-label-petti">City</label>
+                                <input type="text" class="form-control-petti" value="Amman" readonly style="background:#F8FAFC;">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-petti">Area / District</label>
+                                <input type="text" class="form-control-petti" id="customAreaInput" placeholder="e.g. Abdoun, Dabouq">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-petti">Street name</label>
+                                <input type="text" class="form-control-petti" id="customStreetInput" placeholder="Street Name">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-petti">Building &amp; apartment</label>
+                                <input type="text" class="form-control-petti" id="customBldgInput" placeholder="Bldg 4, Apt 2">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label-petti" asp-for="DeliveryNotes">Delivery instructions (optional)</label>
+                                <textarea asp-for="DeliveryNotes" class="form-control-petti" rows="2" placeholder="e.g. Leave with the doorman"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="checkout-panel mb-4">
+                    <h3>Contact Information</h3>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label-petti" asp-for="FullName">Recipient name</label>
+                            <input asp-for="FullName" class="form-control-petti" required placeholder="Full name">
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label-petti" asp-for="PhoneNumber">Mobile number</label>
+                            <input asp-for="PhoneNumber" class="form-control-petti" required placeholder="079 123 4567">
+                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="checkout-panel">
+                    <h3>Payment Method</h3>
+                    <input type="hidden" asp-for="PaymentMethod" id="paymentMethodInput" value="CashOnDelivery" />
+
+                    <label class="payment-option selected" data-method="CashOnDelivery">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                        <div>
+                            <strong>Cash on Delivery</strong>
+                            <div style="font-size:0.82rem;color:var(--ink-faint);">Pay when your order arrives</div>
+                        </div>
+                    </label>
+
+                    <label class="payment-option" data-method="CardOnDelivery">
+                        <i class="fa-solid fa-credit-card"></i>
+                        <div>
+                            <strong>Credit / Debit Card on Delivery</strong>
+                            <div style="font-size:0.82rem;color:var(--ink-faint);">POS terminal available at doorstep</div>
+                        </div>
+                    </label>
+                </div>
+
+            </div>
+
+            <!-- Right Summary Column -->
+            <div class="col-lg-4">
+                <div class="summary-card">
+                    <h3 style="margin-bottom:1.1rem;">Order Summary</h3>
+
+                    <div class="mb-3" style="max-height: 220px; overflow-y: auto;">
+                        @foreach (var item in Model.Cart.Items)
+                        {
+                            <div style="font-size:0.88rem;color:var(--ink-soft);margin-bottom:0.4rem;" class="d-flex justify-content-between">
+                                <span>@item.Name × @item.Quantity</span>
+                                <span class="fw-semibold">@item.Total.ToString("0.00") JOD</span>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="summary-row"><span>Subtotal</span><span>@Model.Cart.Subtotal.ToString("0.00") JOD</span></div>
+                    <div class="summary-row"><span>Delivery fee</span><span>@Model.Cart.DeliveryFee.ToString("0.00") JOD</span></div>
+                    <div class="summary-row"><span>Tax (4%)</span><span>@Model.Cart.Tax.ToString("0.00") JOD</span></div>
+                    <div class="summary-row total"><span>Total</span><span>@Model.Cart.GrandTotal.ToString("0.00") JOD</span></div>
+
+                    <button type="submit" class="btn-petti btn-berry" style="width:100%;margin-top:1rem;">
+                        Place Order <i class="fa-solid fa-check ms-1"></i>
+                    </button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Switch Saved Address
+        document.querySelectorAll('.address-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                document.querySelectorAll('.address-option').forEach(a => a.classList.remove('selected'));
+                opt.classList.add('selected');
+                document.getElementById('newAddressForm').style.display = 'none';
+
+                document.getElementById('finalArea').value = opt.dataset.area;
+                document.getElementById('finalStreet').value = opt.dataset.street;
+            });
+        });
+
+        // Toggle New Address Form
+        document.getElementById('newAddressBtn')?.addEventListener('click', () => {
+            document.querySelectorAll('.address-option').forEach(a => a.classList.remove('selected'));
+            document.getElementById('newAddressForm').style.display = 'block';
+        });
+
+        function syncCustomAddress() {
+            const area = document.getElementById('customAreaInput').value.trim() || 'Amman';
+            const street = document.getElementById('customStreetInput').value.trim();
+            const bldg = document.getElementById('customBldgInput').value.trim();
+            document.getElementById('finalArea').value = area;
+            document.getElementById('finalStreet').value = bldg ? `${street}, ${bldg}` : street;
+        }
+
+        document.getElementById('customAreaInput')?.addEventListener('input', syncCustomAddress);
+        document.getElementById('customStreetInput')?.addEventListener('input', syncCustomAddress);
+        document.getElementById('customBldgInput')?.addEventListener('input', syncCustomAddress);
+
+        // Switch Payment Option
+        document.querySelectorAll('.payment-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                document.querySelectorAll('.payment-option').forEach(p => p.classList.remove('selected'));
+                opt.classList.add('selected');
+                document.getElementById('paymentMethodInput').value = opt.dataset.method;
+            });
+        });
+    </script>
+}

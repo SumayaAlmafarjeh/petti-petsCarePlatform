@@ -1,0 +1,253 @@
+﻿@model IEnumerable<petti.Models.Order>
+@{
+    ViewData["Title"] = "Order Fulfillment";
+    ViewData["HeaderTitle"] = "Order Fulfillment";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="admin-panel">
+    <!-- Filter Bar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div class="d-flex flex-wrap gap-2 flex-grow-1" style="max-width: 500px;">
+            <input type="text" id="adminOrderSearch" class="form-control-petti" style="max-width: 260px;" placeholder="Search by customer or #ID...">
+            <select id="orderStatusFilter" class="form-control-petti" style="max-width: 180px;">
+                <option value="all">All statuses</option>
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div style="overflow-x:auto;">
+        <table class="table-petti w-100 align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Order</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th style="width: 160px;">Update</th>
+                    <th style="width: 80px;">Details</th>
+                </tr>
+            </thead>
+            <tbody id="ordersBoardBody">
+                @foreach (var o in Model)
+                {
+                    var status = o.Status ?? "Pending";
+                    var badgeClass = status.ToLower() switch
+                    {
+                        "delivered" => "status-delivered",
+                        "shipped" => "status-shipped",
+                        "processing" => "status-processing",
+                        "cancelled" => "badge rounded-pill bg-danger-subtle text-danger border px-3 py-1",
+                        _ => "status-processing"
+                    };
+
+                    var itemsData = System.Text.Json.JsonSerializer.Serialize(o.OrderItems.Select(i => new
+                    {
+                        name = i.Product?.Name ?? "Product",
+                        qty = i.Quantity,
+                        price = i.UnitPrice
+                    }));
+
+                    <tr class="admin-order-row" data-id="@o.OrderId" data-customer="@(o.Customer?.FullName ?? "Guest")" data-status="@status.ToLower()">
+                        <td style="font-weight:700; color:var(--ink);">#PT-@o.OrderId</td>
+                        <td>
+                            <strong>@(o.Customer?.FullName ?? "Customer")</strong>
+                            <div style="font-size:0.75rem; color:var(--ink-faint);">@o.PhoneNumber</div>
+                        </td>
+                        <td>@o.OrderDate.ToString("MMM dd, yyyy")</td>
+                        <td class="fw-bold text-berry">@o.TotalAmount.ToString("0.00") JOD</td>
+                        <td>
+                            <span class="status-badge @badgeClass" id="status-badge-@o.OrderId">@status</span>
+                        </td>
+                        <td>
+                            <select class="sort-select" style="font-size:0.82rem; padding:0.35rem 0.65rem;" onchange="changeStatus(@o.OrderId, this.value)">
+                                <option value="Pending" selected="@(status == "Pending")">Pending</option>
+                                <option value="Processing" selected="@(status == "Processing")">Processing</option>
+                                <option value="Shipped" selected="@(status == "Shipped")">Shipped</option>
+                                <option value="Delivered" selected="@(status == "Delivered")">Delivered</option>
+                                <option value="Cancelled" selected="@(status == "Cancelled")">Cancelled</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button type="button" class="table-icon-btn border-0 bg-transparent text-berry"
+                                    onclick="showOrderDetails('@o.OrderId', '@(o.Customer?.FullName ?? "Customer")', '@o.PhoneNumber', '@o.Area, @o.StreetAddress', '@(string.IsNullOrEmpty(o.DeliveryNotes) ? "None" : o.DeliveryNotes)', @itemsData)"
+                                    title="View Delivery Details">
+                                <i class="fa-solid fa-circle-info"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pt-3 border-top mt-3" id="paginationWrapper">
+        <div class="text-muted small" id="paginationInfo">Showing 0 to 0 of 0 entries</div>
+        <div class="d-flex align-items-center gap-1" id="paginationControls"></div>
+    </div>
+</div>
+
+<!-- Order Detail Modal -->
+<div class="modal fade" id="orderBoardModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+        <div class="modal-content petti-modal border-0 rounded-4 shadow">
+            <div class="modal-header border-bottom">
+                <div class="modal-service-name" id="boardOrderId">Order Details</div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <label class="form-label-petti mb-1">Customer Contact</label>
+                <p id="modalCustomerContact" style="font-size:0.9rem; color:var(--ink-soft); margin-bottom:1.1rem;"></p>
+
+                <label class="form-label-petti mb-1">Delivery Address</label>
+                <p id="modalAddress" style="font-size:0.9rem; color:var(--ink-soft); margin-bottom:1.1rem;"></p>
+
+                <label class="form-label-petti mb-1">Delivery Notes</label>
+                <p id="modalNotes" style="font-size:0.9rem; color:var(--ink-soft); margin-bottom:1.1rem;"></p>
+
+                <label class="form-label-petti mb-1">Items Summary</label>
+                <div id="modalItemsList" class="p-2 rounded-3 bg-light border small mb-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        // Pagination & Filter Configuration
+        const pageSize = 10;
+        let currentPage = 1;
+        let visibleRows = [];
+
+        const searchInput = document.getElementById('adminOrderSearch');
+        const statusSelect = document.getElementById('orderStatusFilter');
+        const allRows = Array.from(document.querySelectorAll('.admin-order-row'));
+        const paginationControls = document.getElementById('paginationControls');
+        const paginationInfo = document.getElementById('paginationInfo');
+        const paginationWrapper = document.getElementById('paginationWrapper');
+
+        function applyFilterAndPagination() {
+            const search = searchInput.value.trim().toLowerCase();
+            const status = statusSelect.value;
+
+            visibleRows = allRows.filter(row => {
+                const customer = row.dataset.customer.toLowerCase();
+                const id = row.dataset.id;
+                const rowStatus = row.dataset.status;
+
+                const matchesStatus = (status === 'all' || rowStatus === status);
+                const matchesSearch = (!search || customer.includes(search) || id.includes(search));
+                return matchesStatus && matchesSearch;
+            });
+
+            const totalPages = Math.ceil(visibleRows.length / pageSize) || 1;
+            if (currentPage > totalPages) currentPage = 1;
+
+            allRows.forEach(r => r.style.display = 'none');
+
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const pageRows = visibleRows.slice(start, end);
+            pageRows.forEach(r => r.style.display = '');
+
+            const startCount = visibleRows.length === 0 ? 0 : start + 1;
+            const endCount = Math.min(end, visibleRows.length);
+            paginationInfo.textContent = `Showing ${startCount} to ${endCount} of ${visibleRows.length} entries`;
+
+            renderPaginationButtons(totalPages);
+        }
+
+        function renderPaginationButtons(totalPages) {
+            paginationControls.innerHTML = '';
+
+            if (visibleRows.length <= pageSize) {
+                paginationWrapper.style.display = visibleRows.length === 0 ? 'none' : 'flex';
+                return;
+            } else {
+                paginationWrapper.style.display = 'flex';
+            }
+
+            const prevBtn = document.createElement('button');
+            prevBtn.type = 'button';
+            prevBtn.className = `btn btn-sm btn-light border rounded-3 px-2 ${currentPage === 1 ? 'disabled opacity-50' : ''}`;
+            prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left" style="font-size:0.75rem;"></i>';
+            prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; applyFilterAndPagination(); } };
+            paginationControls.appendChild(prevBtn);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.type = 'button';
+                const isActive = (i === currentPage);
+                pageBtn.className = `btn btn-sm rounded-3 px-3 fw-semibold ${isActive ? 'btn-berry text-white' : 'btn-light border'}`;
+                pageBtn.textContent = i;
+                pageBtn.onclick = () => { currentPage = i; applyFilterAndPagination(); };
+                paginationControls.appendChild(pageBtn);
+            }
+
+            const nextBtn = document.createElement('button');
+            nextBtn.type = 'button';
+            nextBtn.className = `btn btn-sm btn-light border rounded-3 px-2 ${currentPage === totalPages ? 'disabled opacity-50' : ''}`;
+            nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right" style="font-size:0.75rem;"></i>';
+            nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; applyFilterAndPagination(); } };
+            paginationControls.appendChild(nextBtn);
+        }
+
+        searchInput.addEventListener('input', () => { currentPage = 1; applyFilterAndPagination(); });
+        statusSelect.addEventListener('change', () => { currentPage = 1; applyFilterAndPagination(); });
+
+        applyFilterAndPagination();
+
+        // Live Status Update via Ajax
+        async function changeStatus(orderId, newStatus) {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const formData = new FormData();
+            formData.append('orderId', orderId);
+            formData.append('status', newStatus);
+            formData.append('__RequestVerificationToken', token);
+
+            const response = await fetch('/Admin/UpdateOrderStatus', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                const badge = document.getElementById(`status-badge-${orderId}`);
+                badge.textContent = newStatus;
+                badge.className = 'status-badge status-' + newStatus.toLowerCase();
+
+                const row = document.querySelector(`.admin-order-row[data-id="${orderId}"]`);
+                if (row) row.dataset.status = newStatus.toLowerCase();
+            }
+        }
+
+        // Modal Details Box
+        const orderModal = new bootstrap.Modal(document.getElementById('orderBoardModal'));
+        function showOrderDetails(id, customer, phone, address, notes, items) {
+            document.getElementById('boardOrderId').textContent = `Order #PT-${id}`;
+            document.getElementById('modalCustomerContact').textContent = `${customer} · ${phone}`;
+            document.getElementById('modalAddress').textContent = address;
+            document.getElementById('modalNotes').textContent = notes;
+
+            const itemsBox = document.getElementById('modalItemsList');
+            itemsBox.innerHTML = items.map(item => `
+                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                        <span>${item.name} × ${item.qty}</span>
+                        <span class="fw-bold">${(item.price * item.qty).toFixed(2)} JOD</span>
+                    </div>
+                `).join('');
+
+            orderModal.show();
+        }
+    </script>
+}

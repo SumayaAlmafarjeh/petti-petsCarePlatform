@@ -1,0 +1,31 @@
+﻿@model petti.Models.Booking
+@{
+    ViewData["Title"] = "Booking Confirmed";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<section class="section" style="padding-top:9rem;">
+    <div class="container-petti" style="max-width:640px; text-align:center;">
+
+        <span class="success-check"><i class="fa-solid fa-calendar-check"></i></span>
+        <h1>Visit booked!</h1>
+        <p style="margin-bottom:0.3rem;">Appointment reference <strong>#BK-@Model.BookingId</strong></p>
+        <p style="color:var(--ink-faint);">Scheduled for <strong>@Model.AppointmentDate.ToString("MMM dd, yyyy"), @Model.TimeSlot</strong></p>
+
+        <div class="checkout-panel" style="text-align:left; margin-top:2rem;">
+            <h3>Before your specialist arrives</h3>
+            <ul class="service-checklist" style="margin:0;">
+                <li><i class="fa-solid fa-circle-check"></i> Service: <strong>@Model.Service.Name</strong> for <strong>@Model.PetName</strong></li>
+                <li><i class="fa-solid fa-circle-check"></i> Destination: <strong>@Model.StreetAddress, @Model.Area</strong></li>
+                <li><i class="fa-solid fa-circle-check"></i> Total fee: <strong>@Model.TotalPrice.ToString("0.00") JOD</strong> (Payable upon visit)</li>
+                <li><i class="fa-solid fa-circle-check"></i> Your caregiver will confirm arrival 15 minutes ahead</li>
+            </ul>
+        </div>
+
+        <div class="d-flex gap-3 justify-content-center flex-wrap" style="margin-top:2rem;">
+            <a asp-controller="Home" asp-action="Index" class="btn-petti btn-berry">Return Home <i class="fa-solid fa-house ms-1"></i></a>
+            <a asp-action="Index" class="btn-petti btn-ink-outline">Book Another Visit</a>
+        </div>
+
+    </div>
+</section>

@@ -1,0 +1,346 @@
+﻿@model IEnumerable<petti.Models.Service>
+@{
+    ViewData["Title"] = "Service Catalog";
+    ViewData["HeaderTitle"] = "Service Catalog";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var categories = ViewBag.Categories as List<petti.Models.Category> ?? new();
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show rounded-4 mb-4" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["WarningMessage"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show rounded-4 mb-4" role="alert">
+        <i class="fa-solid fa-circle-exclamation me-2"></i> @TempData["WarningMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="admin-panel">
+    <!-- Filter & Action Row -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div class="d-flex flex-wrap gap-2 flex-grow-1" style="max-width: 500px;">
+            <input type="text" id="adminServiceSearch" class="form-control-petti" style="max-width: 260px;" placeholder="Search services...">
+            <select id="adminCategoryFilter" class="form-control-petti" style="max-width: 190px;">
+                <option value="all">All categories</option>
+                @foreach (var c in categories)
+                {
+                    <option value="@c.Name.ToLower()">@c.Name</option>
+                }
+            </select>
+        </div>
+
+        <button type="button" class="btn-petti btn-berry" onclick="openCreateModal()">
+            <i class="fa-solid fa-plus me-1"></i> Add Service
+        </button>
+    </div>
+
+    <!-- Services Table -->
+    <div style="overflow-x:auto;">
+        <table class="table-petti w-100 align-middle mb-0">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">Icon</th>
+                    <th>Service</th>
+                    <th>Duration</th>
+                    <th>Price</th>
+                    <th>Category</th>
+                    <th>Active</th>
+                    <th style="width: 130px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="servicesBody">
+                @foreach (var s in Model)
+                {
+                    var icon = string.IsNullOrEmpty(s.Category?.IconClass) ? "fa-paw" : s.Category.IconClass;
+                    var catName = s.Category?.Name ?? "General Care";
+
+                    <tr class="admin-service-row" data-name="@s.Name.ToLower()" data-category="@catName.ToLower()">
+                        <td>
+                            <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-light text-berry"
+                                  style="width: 40px; height: 40px; font-size: 1.15rem;">
+                                <i class="fa-solid @icon"></i>
+                            </span>
+                        </td>
+                        <td>
+                            <strong>@s.Name</strong>
+                            <div style="font-size:0.75rem; color:var(--ink-faint);">Pet: @(s.TargetPetType ?? "All")</div>
+                        </td>
+                        <td><i class="fa-regular fa-clock me-1 text-muted"></i>@s.DurationMinutes mins</td>
+                        <td class="fw-bold text-berry">@s.Price.ToString("0.00") JOD</td>
+                        <td><span class="badge bg-light text-dark border">@catName</span></td>
+                        <td>
+                            <form asp-action="ServiceToggleStatus" asp-route-id="@s.ServiceId" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="border-0 bg-transparent p-0" title="Click to toggle visibility">
+                                    @if (s.IsActive)
+                                    {
+                                        <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-2 py-1" style="cursor:pointer;">
+                                            <i class="fa-solid fa-eye me-1"></i> Active
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill bg-secondary-subtle text-secondary border px-2 py-1" style="cursor:pointer;">
+                                            <i class="fa-solid fa-eye-slash me-1"></i> Hidden
+                                        </span>
+                                    }
+                                </button>
+                            </form>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-1">
+                                <button type="button" class="table-icon-btn border-0 bg-transparent"
+                                        onclick="openEditModal(@s.ServiceId, '@s.Name', @s.Price, @s.DurationMinutes, @s.CategoryId, '@(s.TargetPetType ?? "All")', '@s.Description')"
+                                        title="Edit Service">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+
+                                <button type="button"
+                                        class="table-icon-btn text-danger border-0 bg-transparent delete-trigger-btn"
+                                        data-id="@s.ServiceId"
+                                        data-name="@s.Name"
+                                        title="Delete Service">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pt-3 border-top mt-3" id="paginationWrapper">
+        <div class="text-muted small" id="paginationInfo">Showing 0 to 0 of 0 entries</div>
+        <div class="d-flex align-items-center gap-1" id="paginationControls"></div>
+    </div>
+</div>
+
+<!-- Modal: Service Create & Edit -->
+<div class="modal fade" id="serviceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 500px;">
+        <div class="modal-content petti-modal border-0 rounded-4 shadow">
+            <div class="modal-header border-bottom">
+                <div class="modal-service-name" id="serviceModalTitle">Add Service</div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="ServiceSave" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body p-4">
+                    <input type="hidden" name="ServiceId" id="servIdInput" value="0" />
+
+                    <div class="mb-3">
+                        <label class="form-label-petti">Service Name</label>
+                        <input type="text" name="Name" id="servNameInput" class="form-control-petti" placeholder="e.g. Full Grooming" required />
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label-petti">Duration (mins)</label>
+                            <input type="number" name="DurationMinutes" id="servDurationInput" class="form-control-petti" placeholder="45" required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label-petti">Flat price (JOD)</label>
+                            <input type="number" step="0.01" name="Price" id="servPriceInput" class="form-control-petti" placeholder="15.00" required />
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label-petti">Category</label>
+                            <select name="CategoryId" id="servCategoryInput" class="form-control-petti" required>
+                                @foreach (var c in categories)
+                                {
+                                    <option value="@c.CategoryId">@c.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label-petti">Target Pet</label>
+                            <select name="TargetPetType" id="servPetTypeInput" class="form-control-petti">
+                                <option value="All">All Pets</option>
+                                <option value="Dog">Dog</option>
+                                <option value="Cat">Cat</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label-petti">Description</label>
+                        <textarea name="Description" id="servDescInput" class="form-control-petti" rows="3" placeholder="What's included in this visit..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-petti btn-berry w-100 justify-content-center py-2">
+                        Save Service <i class="fa-solid fa-check ms-1"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Custom Delete Confirmation -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+        <div class="modal-content border-0 rounded-4 shadow p-4 text-center" style="background: #fff;">
+            <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle"
+                 style="width: 64px; height: 64px; background: #FEE2E2; color: #DC2626; font-size: 1.6rem;">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+
+            <h4 class="fw-bold mb-2">Delete Service</h4>
+            <p class="text-muted small mb-4">
+                Are you sure you want to delete service <strong id="deleteServiceName" class="text-dark"></strong>?
+            </p>
+
+            <form id="deleteServiceForm" asp-action="ServiceDelete" method="post">
+                @Html.AntiForgeryToken()
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn-petti btn-ink-outline px-4" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn-petti btn-berry px-4" style="background: #DC2626; border-color: #DC2626;">
+                        Yes, Delete
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Pagination & Filter Configuration
+        const pageSize = 10;
+        let currentPage = 1;
+        let visibleRows = [];
+
+        const searchInput = document.getElementById('adminServiceSearch');
+        const categorySelect = document.getElementById('adminCategoryFilter');
+        const allRows = Array.from(document.querySelectorAll('.admin-service-row'));
+        const paginationControls = document.getElementById('paginationControls');
+        const paginationInfo = document.getElementById('paginationInfo');
+        const paginationWrapper = document.getElementById('paginationWrapper');
+
+        function applyFilterAndPagination() {
+            const search = searchInput.value.trim().toLowerCase();
+            const cat = categorySelect.value;
+
+            visibleRows = allRows.filter(row => {
+                const name = row.dataset.name;
+                const category = row.dataset.category;
+                const matchesCat = (cat === 'all' || category === cat);
+                const matchesSearch = (!search || name.includes(search));
+                return matchesCat && matchesSearch;
+            });
+
+            const totalPages = Math.ceil(visibleRows.length / pageSize) || 1;
+            if (currentPage > totalPages) currentPage = 1;
+
+            allRows.forEach(r => r.style.display = 'none');
+
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const pageRows = visibleRows.slice(start, end);
+            pageRows.forEach(r => r.style.display = '');
+
+            const startCount = visibleRows.length === 0 ? 0 : start + 1;
+            const endCount = Math.min(end, visibleRows.length);
+            paginationInfo.textContent = `Showing ${startCount} to ${endCount} of ${visibleRows.length} entries`;
+
+            renderPaginationButtons(totalPages);
+        }
+
+        function renderPaginationButtons(totalPages) {
+            paginationControls.innerHTML = '';
+
+            if (visibleRows.length <= pageSize) {
+                paginationWrapper.style.display = visibleRows.length === 0 ? 'none' : 'flex';
+                return;
+            } else {
+                paginationWrapper.style.display = 'flex';
+            }
+
+            const prevBtn = document.createElement('button');
+            prevBtn.type = 'button';
+            prevBtn.className = `btn btn-sm btn-light border rounded-3 px-2 ${currentPage === 1 ? 'disabled opacity-50' : ''}`;
+            prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left" style="font-size:0.75rem;"></i>';
+            prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; applyFilterAndPagination(); } };
+            paginationControls.appendChild(prevBtn);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.type = 'button';
+                const isActive = (i === currentPage);
+                pageBtn.className = `btn btn-sm rounded-3 px-3 fw-semibold ${isActive ? 'btn-berry text-white' : 'btn-light border'}`;
+                pageBtn.textContent = i;
+                pageBtn.onclick = () => { currentPage = i; applyFilterAndPagination(); };
+                paginationControls.appendChild(pageBtn);
+            }
+
+            const nextBtn = document.createElement('button');
+            nextBtn.type = 'button';
+            nextBtn.className = `btn btn-sm btn-light border rounded-3 px-2 ${currentPage === totalPages ? 'disabled opacity-50' : ''}`;
+            nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right" style="font-size:0.75rem;"></i>';
+            nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; applyFilterAndPagination(); } };
+            paginationControls.appendChild(nextBtn);
+        }
+
+        searchInput.addEventListener('input', () => { currentPage = 1; applyFilterAndPagination(); });
+        categorySelect.addEventListener('change', () => { currentPage = 1; applyFilterAndPagination(); });
+
+        applyFilterAndPagination();
+
+        // Service Modal Handlers
+        const servModalEl = document.getElementById('serviceModal');
+        const servModal = new bootstrap.Modal(servModalEl);
+
+        function openCreateModal() {
+            document.getElementById('serviceModalTitle').textContent = 'Add Service';
+            document.getElementById('servIdInput').value = '0';
+            document.getElementById('servNameInput').value = '';
+            document.getElementById('servPriceInput').value = '';
+            document.getElementById('servDurationInput').value = '45';
+            document.getElementById('servPetTypeInput').value = 'All';
+            document.getElementById('servDescInput').value = '';
+            servModal.show();
+        }
+
+        function openEditModal(id, name, price, duration, categoryId, targetPet, desc) {
+            document.getElementById('serviceModalTitle').textContent = 'Edit Service';
+            document.getElementById('servIdInput').value = id;
+            document.getElementById('servNameInput').value = name;
+            document.getElementById('servPriceInput').value = price;
+            document.getElementById('servDurationInput').value = duration;
+            document.getElementById('servCategoryInput').value = categoryId;
+            document.getElementById('servPetTypeInput').value = targetPet;
+            document.getElementById('servDescInput').value = desc || '';
+            servModal.show();
+        }
+
+        // Custom Delete Modal Handlers
+        const deleteModalEl = document.getElementById('deleteConfirmModal');
+        const deleteModal = new bootstrap.Modal(deleteModalEl);
+        const deleteForm = document.getElementById('deleteServiceForm');
+        const deleteServiceName = document.getElementById('deleteServiceName');
+
+        document.querySelectorAll('.delete-trigger-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.dataset.id;
+                const name = btn.dataset.name;
+
+                deleteServiceName.textContent = `"${name}"`;
+                deleteForm.action = `/Admin/ServiceDelete/${id}`;
+                deleteModal.show();
+            });
+        });
+    </script>
+}

@@ -1,0 +1,326 @@
+﻿@model petti.Models.ViewModels.AdminProductFormViewModel
+@{
+    var isEdit = Model.ProductId > 0;
+    ViewData["Title"] = (isEdit ? "Edit Product" : "Add New Product") + " — Petti Admin";
+    ViewData["HeaderTitle"] = isEdit ? "Edit Product" : "Add New Product";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="admin-topbar">
+    <h1 id="formTitle">@(isEdit ? "Edit Product" : "Add New Product")</h1>
+    <a asp-action="Products" class="btn-petti btn-ink-outline">
+        <i class="fa-solid fa-arrow-left me-1"></i> Back to Inventory
+    </a>
+</div>
+
+<form asp-action="ProductSave" method="post" enctype="multipart/form-data" id="productForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="ProductId" />
+    <input type="hidden" asp-for="PrimaryImageIndex" id="primaryImageIndexInput" value="0" />
+    <input type="hidden" asp-for="PrimaryExistingImageId" id="primaryExistingImageIdInput" />
+
+    <div class="row g-4">
+        <!-- Details Column -->
+        <div class="col-lg-7">
+            <div class="admin-panel">
+                <h3 style="margin-bottom:1.2rem;">Product Details</h3>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label-petti" asp-for="Name">Product title</label>
+                        <input asp-for="Name" class="form-control-petti" placeholder="Grain-Free Chicken Kibble 3kg" required />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label-petti" asp-for="Description">Description</label>
+                        <textarea asp-for="Description" class="form-control-petti" rows="4" placeholder="Full product description..."></textarea>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label-petti" asp-for="CategoryId">Category</label>
+                        <select asp-for="CategoryId" asp-items="Model.Categories" class="form-control-petti" required></select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label-petti" asp-for="TargetPetType">Target pet type</label>
+                        <select asp-for="TargetPetType" class="form-control-petti">
+                            <option value="Dog">Dog</option>
+                            <option value="Cat">Cat</option>
+                            <option value="All">Both / All Pets</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label-petti" asp-for="Price">Price (JOD)</label>
+                        <input asp-for="Price" type="number" step="0.01" class="form-control-petti" placeholder="14.50" required />
+                        <span asp-validation-for="Price" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label-petti" asp-for="StockQuantity">Stock quantity</label>
+                        <input asp-for="StockQuantity" type="number" class="form-control-petti" placeholder="48" required />
+                        <span asp-validation-for="StockQuantity" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2" style="margin-top:1.4rem;">
+                    <label class="toggle-switch">
+                        <input type="checkbox" asp-for="IsActive" />
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span style="font-size:0.9rem;font-weight:600;">Active (visible in catalog)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gallery & Upload Column -->
+        <div class="col-lg-5">
+            <div class="admin-panel mb-4">
+                <h3 style="margin-bottom:1.2rem;">Product Gallery</h3>
+
+                <!-- Upload Area Box -->
+                <div class="p-4 rounded-4 text-center mb-3" id="dropArea"
+                     style="border: 2px dashed #CBD5E1; background: #F8FAFC; cursor: pointer; transition: all 0.2s ease;">
+                    <i class="fa-solid fa-cloud-arrow-up text-berry mb-2" style="font-size: 2.2rem;"></i>
+                    <div class="fw-bold mb-1">Click to upload or drag images here</div>
+                    <span class="text-muted small">Supports JPG, PNG, WEBP (Multiple files allowed)</span>
+                    <input asp-for="ImageFiles" type="file" multiple class="d-none" id="fileInput" accept="image/png, image/jpeg, image/webp" />
+                </div>
+
+                <!-- Gallery Preview Container -->
+                <div class="d-flex flex-column gap-2" id="galleryContainer">
+                    <label class="form-label-petti mb-1">Product Images (Click any to set as Primary)</label>
+
+                    <div class="d-flex flex-wrap gap-2" id="imagesGrid">
+                        <!-- Existing Saved Images -->
+                        @for (int i = 0; i < Model.ExistingImages.Count; i++)
+                        {
+                            var img = Model.ExistingImages[i];
+                            var isFirst = (i == 0);
+                            <div class="gallery-card @(isFirst ? "is-primary" : "")" id="exist-img-@img.ImageId" onclick="setPrimaryExisting(@img.ImageId, this)">
+                                <img src="@img.ImageUrl" alt="Product photo">
+                                <span class="badge-primary-tag"><i class="fa-solid fa-star me-1"></i>Primary</span>
+                                <button type="button" class="btn-remove-photo" onclick="event.stopPropagation(); removeExistingImage(@img.ImageId);" title="Delete photo">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        }
+
+                        <!-- Newly Added Images Preview -->
+                        <div id="newImagesWrapper" class="d-flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-petti btn-berry w-100 justify-content-center py-3">
+                Save Product <i class="fa-solid fa-check ms-1"></i>
+            </button>
+        </div>
+    </div>
+</form>
+
+<style>
+    .gallery-card {
+        position: relative;
+        width: 96px;
+        height: 96px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 2px solid #E2E8F0;
+        background: #fff;
+        cursor: pointer;
+        padding: 3px;
+        transition: all 0.2s ease;
+    }
+
+        .gallery-card:hover {
+            border-color: #94A3B8;
+        }
+
+        .gallery-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .gallery-card .badge-primary-tag {
+            display: none;
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            right: 5px;
+            background: rgba(225, 29, 72, 0.95);
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-align: center;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+
+        .gallery-card.is-primary {
+            border-color: #E11D48;
+            box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.2);
+        }
+
+            .gallery-card.is-primary .badge-primary-tag {
+                display: block;
+            }
+
+    .btn-remove-photo {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 22px;
+        height: 22px;
+        background: rgba(0, 0, 0, 0.6);
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+        .btn-remove-photo:hover {
+            background: #DC2626;
+        }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('fileInput');
+        const newImagesWrapper = document.getElementById('newImagesWrapper');
+        const primaryIndexInput = document.getElementById('primaryImageIndexInput');
+        const primaryExistingInput = document.getElementById('primaryExistingImageIdInput');
+
+        // DataTransfer object preserves files cumulatively on repeated clicks
+        let uploadedFiles = new DataTransfer();
+
+        dropArea.addEventListener('click', () => fileInput.click());
+
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = 'var(--berry)';
+            dropArea.style.background = '#FFF1F2';
+        });
+
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.style.borderColor = '#CBD5E1';
+            dropArea.style.background = '#F8FAFC';
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = '#CBD5E1';
+            dropArea.style.background = '#F8FAFC';
+            handleIncomingFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', function () {
+            handleIncomingFiles(this.files);
+        });
+
+        function handleIncomingFiles(files) {
+            Array.from(files).forEach(file => {
+                uploadedFiles.items.add(file);
+            });
+            fileInput.files = uploadedFiles.files;
+            renderNewImages();
+        }
+
+        function renderNewImages() {
+            newImagesWrapper.innerHTML = '';
+            const files = Array.from(uploadedFiles.files);
+
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const card = document.createElement('div');
+                    card.className = 'gallery-card';
+                    card.dataset.newIndex = index;
+
+                    // Automatically make first uploaded file Primary if no existing image is selected
+                    const hasExistingSelected = document.querySelector('.gallery-card.is-primary:not([data-new-index])');
+                    if (index === parseInt(primaryIndexInput.value) && !hasExistingSelected) {
+                        card.classList.add('is-primary');
+                    }
+
+                    card.innerHTML = `
+                                <img src="${e.target.result}" alt="Preview">
+                                <span class="badge-primary-tag"><i class="fa-solid fa-star me-1"></i>Primary</span>
+                                <button type="button" class="btn-remove-photo" onclick="event.stopPropagation(); removeNewFile(${index});">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            `;
+
+                    card.addEventListener('click', () => setPrimaryNew(index, card));
+                    newImagesWrapper.appendChild(card);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function setPrimaryNew(index, el) {
+            document.querySelectorAll('.gallery-card').forEach(c => c.classList.remove('is-primary'));
+            el.classList.add('is-primary');
+            primaryIndexInput.value = index;
+            primaryExistingInput.value = '';
+        }
+
+        function setPrimaryExisting(id, el) {
+            document.querySelectorAll('.gallery-card').forEach(c => c.classList.remove('is-primary'));
+            el.classList.add('is-primary');
+            primaryExistingInput.value = id;
+            primaryIndexInput.value = -1;
+        }
+
+        function removeNewFile(index) {
+            const dt = new DataTransfer();
+            const files = uploadedFiles.files;
+
+            for (let i = 0; i < files.length; i++) {
+                if (i !== index) dt.items.add(files[i]);
+            }
+
+            uploadedFiles = dt;
+            fileInput.files = uploadedFiles.files;
+
+            if (primaryIndexInput.value == index) primaryIndexInput.value = 0;
+            renderNewImages();
+        }
+
+        async function removeExistingImage(imageId) {
+            if (!confirm('Remove this photo permanently?')) return;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const formData = new FormData();
+            formData.append('imageId', imageId);
+            formData.append('__RequestVerificationToken', token);
+
+            const res = await fetch('/Admin/DeleteProductImage', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                const node = document.getElementById(`exist-img-${imageId}`);
+                if (node) {
+                    const wasPrimary = node.classList.contains('is-primary');
+                    node.remove();
+                    if (wasPrimary) {
+                        const firstLeft = document.querySelector('.gallery-card');
+                        if (firstLeft) firstLeft.classList.add('is-primary');
+                    }
+                }
+            }
+        }
+    </script>
+}

@@ -1,0 +1,186 @@
+﻿@model IEnumerable<petti.Models.ViewModels.AdminCustomerItemViewModel>
+@{
+    ViewData["Title"] = "Customer Registry";
+    ViewData["HeaderTitle"] = "Customer Registry";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="admin-panel">
+    <!-- Search Bar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div class="d-flex flex-wrap gap-2 flex-grow-1" style="max-width: 450px;">
+            <input type="text" id="userSearch" class="form-control-petti" placeholder="Search by name, email, or area...">
+        </div>
+        <div class="text-muted small">
+            Total Customers: <strong>@Model.Count()</strong>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div style="overflow-x:auto;">
+        <table class="table-petti w-100 align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Phone</th>
+                    <th>Area</th>
+                    <th>Registered</th>
+                    <th>Activity</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="usersBody">
+                @foreach (var u in Model)
+                {
+                    var initials = "PT";
+                    var parts = u.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length > 1) initials = $"{parts[0][0]}{parts[1][0]}".ToUpper();
+                    else if (parts.Length == 1 && parts[0].Length > 0) initials = $"{parts[0][0]}".ToUpper();
+
+                    <tr class="admin-customer-row"
+                        data-name="@u.FullName.ToLower()"
+                        data-email="@u.Email.ToLower()"
+                        data-area="@(u.Area?.ToLower() ?? "")">
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="profile-avatar" style="width:38px;height:38px;font-size:0.85rem;display:flex;align-items:center;justify-content:center;background:var(--ink);color:#fff;border-radius:50%;font-weight:600;flex-shrink:0;">
+                                    @initials
+                                </span>
+                                <div>
+                                    <strong style="color:var(--ink);">@u.FullName</strong>
+                                    <div style="font-size:0.75rem;color:var(--ink-faint);">@u.Email</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>@u.PhoneNumber</td>
+                        <td><span class="badge bg-light text-dark border">@u.Area</span></td>
+                        <td>@u.RegisteredDate.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2 small">
+                                <span title="Total Orders" class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                    <i class="fa-solid fa-box me-1"></i>@u.OrdersCount Orders
+                                </span>
+                                <span title="Booked Visits" class="badge bg-info-subtle text-info border border-info-subtle">
+                                    <i class="fa-solid fa-calendar me-1"></i>@u.BookingsCount Bookings
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <label class="toggle-switch" title="Toggle active / blocked status">
+                                <input type="checkbox" @(!u.IsLockedOut ? "checked" : "") onchange="toggleCustomerLock('@u.Id', this)" />
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pt-3 border-top mt-3" id="paginationWrapper">
+        <div class="text-muted small" id="paginationInfo">Showing 0 to 0 of 0 entries</div>
+        <div class="d-flex align-items-center gap-1" id="paginationControls"></div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        // Pagination & Search Engine
+        const pageSize = 10;
+        let currentPage = 1;
+        let visibleRows = [];
+
+        const searchInput = document.getElementById('userSearch');
+        const allRows = Array.from(document.querySelectorAll('.admin-customer-row'));
+        const paginationControls = document.getElementById('paginationControls');
+        const paginationInfo = document.getElementById('paginationInfo');
+        const paginationWrapper = document.getElementById('paginationWrapper');
+
+        function applyFilterAndPagination() {
+            const search = searchInput.value.trim().toLowerCase();
+
+            visibleRows = allRows.filter(row => {
+                const name = row.dataset.name;
+                const email = row.dataset.email;
+                const area = row.dataset.area;
+                return !search || name.includes(search) || email.includes(search) || area.includes(search);
+            });
+
+            const totalPages = Math.ceil(visibleRows.length / pageSize) || 1;
+            if (currentPage > totalPages) currentPage = 1;
+
+            allRows.forEach(r => r.style.display = 'none');
+
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const pageRows = visibleRows.slice(start, end);
+            pageRows.forEach(r => r.style.display = '');
+
+            const startCount = visibleRows.length === 0 ? 0 : start + 1;
+            const endCount = Math.min(end, visibleRows.length);
+            paginationInfo.textContent = `Showing ${startCount} to ${endCount} of ${visibleRows.length} entries`;
+
+            renderPaginationButtons(totalPages);
+        }
+
+        function renderPaginationButtons(totalPages) {
+            paginationControls.innerHTML = '';
+
+            if (visibleRows.length <= pageSize) {
+                paginationWrapper.style.display = visibleRows.length === 0 ? 'none' : 'flex';
+                return;
+            } else {
+                paginationWrapper.style.display = 'flex';
+            }
+
+            const prevBtn = document.createElement('button');
+            prevBtn.type = 'button';
+            prevBtn.className = `btn btn-sm btn-light border rounded-3 px-2 ${currentPage === 1 ? 'disabled opacity-50' : ''}`;
+            prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left" style="font-size:0.75rem;"></i>';
+            prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; applyFilterAndPagination(); } };
+            paginationControls.appendChild(prevBtn);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.type = 'button';
+                const isActive = (i === currentPage);
+                pageBtn.className = `btn btn-sm rounded-3 px-3 fw-semibold ${isActive ? 'btn-berry text-white' : 'btn-light border'}`;
+                pageBtn.textContent = i;
+                pageBtn.onclick = () => { currentPage = i; applyFilterAndPagination(); };
+                paginationControls.appendChild(pageBtn);
+            }
+
+            const nextBtn = document.createElement('button');
+            nextBtn.type = 'button';
+            nextBtn.className = `btn btn-sm btn-light border rounded-3 px-2 ${currentPage === totalPages ? 'disabled opacity-50' : ''}`;
+            nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right" style="font-size:0.75rem;"></i>';
+            nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; applyFilterAndPagination(); } };
+            paginationControls.appendChild(nextBtn);
+        }
+
+        searchInput.addEventListener('input', () => { currentPage = 1; applyFilterAndPagination(); });
+        applyFilterAndPagination();
+
+        // Toggle Lockout via Ajax
+        async function toggleCustomerLock(userId, checkbox) {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const formData = new FormData();
+            formData.append('userId', userId);
+            formData.append('__RequestVerificationToken', token);
+
+            const response = await fetch('/Admin/ToggleUserStatus', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            if (!data.success) {
+                alert('Failed to update customer status.');
+                checkbox.checked = !checkbox.checked; // استرجاع الحالة السابقة عند الفشل
+            }
+        }
+    </script>
+}

@@ -553,6 +553,11 @@ namespace petti.Data.Migrations
                     b.Property<int?>("ServiceId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.HasKey("ReviewId");
 
                     b.HasIndex("CustomerId");
@@ -670,6 +675,11 @@ namespace petti.Data.Migrations
 
                     b.Property<int>("Rating")
                         .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.HasKey("TestimonialId");
 

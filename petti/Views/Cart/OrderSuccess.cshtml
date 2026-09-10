@@ -1,0 +1,54 @@
+﻿@model petti.Models.Order
+@{
+    ViewData["Title"] = "Order Confirmed — Petti";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var itemsSubtotal = Model.OrderItems.Sum(i => i.UnitPrice * i.Quantity);
+    var deliveryFee = 2.00m;
+    var tax = Math.Round(itemsSubtotal * 0.04m, 2);
+}
+
+<section class="section" style="padding-top:9rem;">
+    <div class="container-petti" style="max-width:640px; text-align:center;">
+
+        <span class="success-check"><i class="fa-solid fa-check"></i></span>
+        <h1>Order confirmed!</h1>
+        <p style="margin-bottom:0.3rem;">Order <strong id="orderIdDisplay">#PT-@Model.OrderId</strong> is on its way to prep.</p>
+        <p style="color:var(--ink-faint);">Estimated doorstep delivery: <strong>Tomorrow, 2:00 PM – 5:00 PM</strong></p>
+
+        <div class="checkout-panel" style="text-align:left; margin-top:2rem;">
+            <h3>Order Summary</h3>
+
+            @foreach (var item in Model.OrderItems)
+            {
+                <div class="summary-row">
+                    <span>@(item.Product?.Name ?? "Product Item") × @item.Quantity</span>
+                    <span>@((item.UnitPrice * item.Quantity).ToString("0.00")) JOD</span>
+                </div>
+            }
+
+            <div class="summary-row">
+                <span>Delivery fee</span>
+                <span>@deliveryFee.ToString("0.00") JOD</span>
+            </div>
+
+            <div class="summary-row">
+                <span>Tax (4%)</span>
+                <span>@tax.ToString("0.00") JOD</span>
+            </div>
+
+            <div class="summary-row total">
+                <span>Total due (@Model.PaymentMethod)</span>
+                <span>@Model.TotalAmount.ToString("0.00") JOD</span>
+            </div>
+        </div>
+
+        <div class="d-flex gap-3 justify-content-center flex-wrap" style="margin-top:2rem;">
+            <a asp-controller="Orders" asp-action="Index" class="btn-petti btn-berry">
+                Track My Order <i class="fa-solid fa-truck-fast ms-1"></i>
+            </a>
+            <a asp-controller="Products" asp-action="Index" class="btn-petti btn-ink-outline">Continue Shopping</a>
+        </div>
+
+    </div>
+</section>

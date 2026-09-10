@@ -1,0 +1,99 @@
+﻿@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Create Account";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petti Create Account </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true">
+</head>
+<body>
+    <div class="auth-shell">
+
+        <div class="auth-visual">
+            <div class="auth-visual-copy">
+                <div class="cat-wrap">
+                    <div class="cat-face">
+                        <div class="cat-ear left"></div>
+                        <div class="cat-ear right"></div>
+                        <div class="cat-whiskers">
+                            <span class="whisker l1"></span><span class="whisker l2"></span><span class="whisker l3"></span>
+                            <span class="whisker r1"></span><span class="whisker r2"></span><span class="whisker r3"></span>
+                        </div>
+                        <div class="cat-eyes"><span class="cat-eye"></span><span class="cat-eye"></span></div>
+                        <div class="cat-nose"></div>
+                        <div class="cat-mouth"></div>
+                    </div>
+                </div>
+                <h2>Join Petti today</h2>
+                <p>Set up your pet's profile once, then book visits and reorder in a couple of taps.</p>
+            </div>
+        </div>
+
+        <div class="auth-card-wrap">
+            <div class="auth-card">
+
+                <a asp-controller="Home" asp-action="Index" class="petti-logo">
+                    <img src="~/images/logo.png" asp-append-version="true" alt="Petti Logo" class="site-logo">
+                </a>
+                <h1>Create your account</h1>
+               
+
+                <form id="signupForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-2 small" role="alert"></div>
+
+                    <label class="form-label-petti" asp-for="Input.FullName">Full name</label>
+                    <input asp-for="Input.FullName" class="form-control-petti mb-2" placeholder="Lina Haddad" />
+                    <span asp-validation-for="Input.FullName" class="text-danger small d-block mb-1"></span>
+
+                    <label class="form-label-petti" asp-for="Input.PhoneNumber">Mobile number</label>
+                    <input asp-for="Input.PhoneNumber" class="form-control-petti mb-2" placeholder="079 123 4567" />
+                    <span asp-validation-for="Input.PhoneNumber" class="text-danger small d-block mb-1"></span>
+
+                    <label class="form-label-petti" asp-for="Input.Email">Email</label>
+                    <input asp-for="Input.Email" class="form-control-petti mb-2" placeholder="you@email.com" />
+                    <span asp-validation-for="Input.Email" class="text-danger small d-block mb-1"></span>
+
+                    <label class="form-label-petti" asp-for="Input.Password">Password</label>
+                    <div class="password-field mb-2">
+                        <input asp-for="Input.Password" class="form-control-petti" id="signupPassword" placeholder="At least 6 characters" />
+                        <button type="button" class="password-toggle" data-target="signupPassword"><i class="fa-regular fa-eye"></i></button>
+                    </div>
+                    <span asp-validation-for="Input.Password" class="text-danger small d-block mb-1"></span>
+
+                    <label class="check-row my-2">
+                        <input type="checkbox" required> I agree to the Terms of Service and Privacy Policy
+                    </label>
+
+                    <button type="submit" class="btn-petti btn-berry mt-2" style="width:100%;">Create Account <i class="fa-solid fa-paw ms-1"></i></button>
+                </form>
+
+                <p class="auth-foot-link mt-3 mb-0">Already have an account? <a asp-page="./Login">Sign in</a></p>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+            document.querySelectorAll('.password-toggle').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const input = document.getElementById(btn.dataset.target);
+                    const icon = btn.querySelector('i');
+                    const isPw = input.type === 'password';
+                    input.type = isPw ? 'text' : 'password';
+                    icon.classList.toggle('fa-eye', !isPw);
+                    icon.classList.toggle('fa-eye-slash', isPw);
+                });
+            });
+    </script>
+    <partial name="_ValidationScriptsPartial" />
+</body>
+</html>

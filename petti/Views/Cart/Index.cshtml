@@ -1,0 +1,161 @@
+﻿@model petti.Models.ViewModels.CartDrawerViewModel
+@{
+    ViewData["Title"] = "Your Cart — Petti";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<header class="page-header">
+    <div class="container-petti">
+        <div class="breadcrumb-petti">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <i class="fa-solid fa-chevron-right" style="font-size:0.65rem;"></i>
+            <span>Cart</span>
+        </div>
+        <h1>Your Cart</h1>
+    </div>
+</header>
+
+<section class="section-tight">
+    <div class="container-petti">
+        <div class="row g-4">
+
+            <!-- Cart Items List -->
+            <div class="col-lg-8">
+                <div id="cartLines">
+                    @foreach (var item in Model.Items)
+                    {
+                        <div class="cart-line" data-id="@item.ProductId" data-price="@item.Price">
+                            <img src="@item.ImageUrl" alt="@item.Name">
+                            <div>
+                                <div class="cart-line-title">@item.Name</div>
+                                <div class="cart-line-cat">@item.CategoryName</div>
+                            </div>
+                            <div class="qty-stepper">
+                                <button type="button" class="cl-minus">−</button>
+                                <span class="qty-value">@item.Quantity</span>
+                                <button type="button" class="cl-plus">+</button>
+                            </div>
+                            <div class="cart-line-total">@item.Total.ToString("0.00") JOD</div>
+                            <button type="button" class="cart-line-remove" aria-label="Remove"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    }
+                </div>
+
+                <div id="cartEmpty" class="empty-state" style="@(Model.Items.Any() ? "display:none;" : "display:block;")">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <h3>Your cart is empty</h3>
+                    <p style="margin-bottom:1.2rem;">Add some essentials to get started.</p>
+                    <a asp-controller="Products" asp-action="Index" class="btn-petti btn-berry">Browse Products</a>
+                </div>
+            </div>
+
+            <!-- Summary Card -->
+            <div class="col-lg-4">
+                <div class="summary-card">
+                    <h3 style="margin-bottom:1.2rem;">Order Summary</h3>
+
+                    <div class="promo-row">
+                        <input type="text" class="form-control-petti" id="promoInput" placeholder="Promo code">
+                        <button type="button" class="btn-petti btn-ink-outline btn-sm" id="applyPromoBtn">Apply</button>
+                    </div>
+                    <div class="promo-valid" id="promoValid"><i class="fa-solid fa-circle-check"></i> PETTI10 applied — 10% off</div>
+
+                    <div style="margin-top:1.4rem;">
+                        <div class="summary-row"><span>Subtotal</span><span id="sumSubtotal">@Model.Subtotal.ToString("0.00") JOD</span></div>
+                        <div class="summary-row"><span>Amman delivery fee</span><span id="sumDelivery">@Model.DeliveryFee.ToString("0.00") JOD</span></div>
+                        <div class="summary-row"><span>Estimated tax (4%)</span><span id="sumTax">@Model.Tax.ToString("0.00") JOD</span></div>
+                        <div class="summary-row"><span>Discount</span><span id="sumDiscount">− @Model.DiscountAmount.ToString("0.00") JOD</span></div>
+                        <div class="summary-row total"><span>Total</span><span id="sumTotal">@Model.GrandTotal.ToString("0.00") JOD</span></div>
+                    </div>
+
+                    <a asp-action="Checkout" class="btn-petti btn-berry" style="width:100%;margin-top:1rem; text-decoration:none; justify-content:center; @(Model.Items.Any() ? "" : "pointer-events:none;opacity:0.6;")" id="checkoutBtn">
+                        Proceed to Checkout <i class="fa-solid fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        let discountRate = 0.0;
+
+        function recalculateClientSummary() {
+            const lines = document.querySelectorAll('.cart-line');
+            const emptyBox = document.getElementById('cartEmpty');
+            const checkoutBtn = document.getElementById('checkoutBtn');
+
+            if (lines.length === 0) {
+                emptyBox.style.display = 'block';
+                checkoutBtn.style.pointerEvents = 'none';
+                checkoutBtn.style.opacity = '0.6';
+            } else {
+                emptyBox.style.display = 'none';
+                checkoutBtn.style.pointerEvents = '';
+                checkoutBtn.style.opacity = '1';
+            }
+
+            let subtotal = 0;
+            lines.forEach(line => {
+                const price = parseFloat(line.dataset.price);
+                const qty = parseInt(line.querySelector('.qty-value').textContent);
+                subtotal += price * qty;
+                line.querySelector('.cart-line-total').textContent = (price * qty).toFixed(2) + ' JOD';
+            });
+
+            const delivery = lines.length ? 2.00 : 0.00;
+            const tax = subtotal * 0.04;
+            const discount = subtotal * discountRate;
+            const total = Math.max(0, subtotal + delivery + tax - discount);
+
+            document.getElementById('sumSubtotal').textContent = `${subtotal.toFixed(2)} JOD`;
+            document.getElementById('sumDelivery').textContent = `${delivery.toFixed(2)} JOD`;
+            document.getElementById('sumTax').textContent = `${tax.toFixed(2)} JOD`;
+            document.getElementById('sumDiscount').textContent = `− ${discount.toFixed(2)} JOD`;
+            document.getElementById('sumTotal').textContent = `${total.toFixed(2)} JOD`;
+        }
+
+        document.addEventListener('click', async (e) => {
+            const line = e.target.closest('.cart-line');
+            if (!line) return;
+            const id = line.dataset.id;
+            const qtySpan = line.querySelector('.qty-value');
+            let currentQty = parseInt(qtySpan.textContent);
+
+            if (e.target.closest('.cl-plus')) {
+                currentQty += 1;
+                qtySpan.textContent = currentQty;
+                recalculateClientSummary();
+                await fetch(`/Cart/UpdateQuantity?productId=${id}&quantity=${currentQty}`, { method: 'POST' });
+                if (typeof refreshCartBadge === 'function') refreshCartBadge();
+            }
+
+            if (e.target.closest('.cl-minus')) {
+                if (currentQty > 1) {
+                    currentQty -= 1;
+                    qtySpan.textContent = currentQty;
+                    recalculateClientSummary();
+                    await fetch(`/Cart/UpdateQuantity?productId=${id}&quantity=${currentQty}`, { method: 'POST' });
+                    if (typeof refreshCartBadge === 'function') refreshCartBadge();
+                }
+            }
+
+            if (e.target.closest('.cart-line-remove')) {
+                line.remove();
+                recalculateClientSummary();
+                await fetch(`/Cart/RemoveItem?productId=${id}`, { method: 'POST' });
+                if (typeof refreshCartBadge === 'function') refreshCartBadge();
+            }
+        });
+
+        document.getElementById('applyPromoBtn')?.addEventListener('click', () => {
+            const code = document.getElementById('promoInput').value.trim().toUpperCase();
+            const valid = code === 'PETTI10';
+            discountRate = valid ? 0.10 : 0.0;
+            document.getElementById('promoValid').classList.toggle('show', valid);
+            recalculateClientSummary();
+        });
+    </script>
+}

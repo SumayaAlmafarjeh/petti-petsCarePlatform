@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] — Petti Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true">
+</head>
+<body>
+
+    <div class="admin-shell">
+
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="footer-logo mb-4" style="color:#fff; font-weight:700; font-size:1.2rem;">
+                <i class="fa-solid fa-paw text-berry me-2"></i> Petti Admin
+            </div>
+
+            <a asp-controller="Admin" asp-action="Index" class="admin-nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                <i class="fa-solid fa-gauge"></i> Dashboard
+            </a>
+            <a asp-controller="Admin" asp-action="Products" class="admin-nav-link @(ViewContext.RouteData.Values["action"]?.ToString()?.StartsWith("Product") == true ? "active" : "")">
+                <i class="fa-solid fa-box"></i> Products
+            </a>
+            <a asp-controller="Admin" asp-action="Categories" class="admin-nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Categories" ? "active" : "")">
+                <i class="fa-solid fa-tags"></i> Categories
+            </a>
+            <a asp-controller="Admin" asp-action="Orders" class="admin-nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Orders" ? "active" : "")">
+                <i class="fa-solid fa-clipboard-list"></i> Orders
+            </a>
+            <a asp-controller="Admin" asp-action="Services" class="admin-nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Services" ? "active" : "")">
+                <i class="fa-solid fa-spa"></i> Services
+            </a>
+            <a asp-controller="Admin" asp-action="Bookings" class="admin-nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Bookings" ? "active" : "")">
+                <i class="fa-solid fa-calendar-days"></i> Bookings
+            </a>
+            <a asp-controller="Admin" asp-action="Users" class="admin-nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Users" ? "active" : "")">
+                <i class="fa-solid fa-users"></i> Customers
+            </a>
+            <a asp-controller="Admin" asp-action="Reviews" class="admin-nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Reviews" ? "active" : "")">
+                <i class="fa-solid fa-star-half-stroke"></i> Reviews
+            </a>
+            <a asp-controller="Admin" asp-action="Testimonials" class="admin-nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Testimonials" ? "active" : "")">
+                <i class="fa-solid fa-star-half-stroke"></i> Testimonials
+            </a>
+            <a asp-controller="Home" asp-action="Index" class="admin-nav-link" style="margin-top:1.5rem; border-top:1px solid rgba(255,255,255,0.1); padding-top:1.1rem;">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Back to site
+            </a>
+        </aside>
+
+        <!-- Main Content Shell -->
+        <main class="admin-main">
+            <div class="admin-topbar">
+                <div>
+                    <h1 class="mb-0">@ViewData["HeaderTitle"]</h1>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <!-- تاريخ اليوم في عمان كعنصر ترحيبي عملي بدلاً من جرس الإشعارات الفارغ -->
+                    <span class="d-none d-md-flex align-items-center gap-2 px-3 py-2 rounded-pill bg-light border text-muted small">
+                        <i class="fa-regular fa-calendar text-berry"></i>
+                        <span>@DateTime.Now.ToString("dddd, MMM dd")</span>
+                    </span>
+
+                    <!-- بروفايل الأدمن وقائمة تسجيل الخروج -->
+                    <div class="dropdown">
+                        <button class="btn border-0 p-0 d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="profile-avatar" style="width:42px;height:42px;font-size:0.95rem;display:flex;align-items:center;justify-content:center;background:var(--ink);color:#fff;border-radius:50%;font-weight:600;">
+                                @(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "A")
+                            </span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 py-2">
+                            <li class="px-3 py-1 text-muted small">Signed in as <strong>@(User.Identity?.Name ?? "Admin")</strong></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item small" asp-controller="Home" asp-action="Index"><i class="fa-solid fa-globe me-2"></i>View Public Store</a></li>
+                            <li>
+                                <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home")" method="post">
+                                    <button type="submit" class="dropdown-item small text-danger border-0 bg-transparent">
+                                        <i class="fa-solid fa-right-from-bracket me-2"></i>Sign Out
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            @RenderBody()
+        </main>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

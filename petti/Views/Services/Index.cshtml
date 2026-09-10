@@ -1,0 +1,63 @@
+﻿@model IEnumerable<petti.Models.ViewModels.ServiceCardViewModel>
+@{
+    ViewData["Title"] = "At-Home Care Services";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<header class="page-header">
+    <div class="container-petti">
+        <div class="breadcrumb-petti">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <i class="fa-solid fa-chevron-right" style="font-size:0.65rem;"></i>
+            <span>Home Care</span>
+        </div>
+        <h1>At-Home Care Services</h1>
+        <p style="margin:0;color:var(--ink-soft);">Fixed-price visits from background-checked specialists , pick a service to see time slots.</p>
+    </div>
+</header>
+
+<section class="section-tight">
+    <div class="container-petti">
+        <div class="row g-4" id="servicesGrid">
+            @if (!Model.Any())
+            {
+                <div class="col-12 text-center py-5">
+                    <i class="fa-solid fa-hand-holding-heart mb-3" style="font-size: 3rem; color: #D0D5DD;"></i>
+                    <h4>No services currently available</h4>
+                    <p class="text-muted">Please check back soon for certified doorstep visits.</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var s in Model)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden p-3" style="background:#fff;">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-light text-berry" style="width:48px;height:48px;font-size:1.3rem;">
+                                    <i class="fa-solid @s.IconClass"></i>
+                                </span>
+                                <div>
+                                    <h3 class="h5 mb-0 font-weight-bold">@s.Name</h3>
+                                    <span class="small text-muted"><i class="fa-regular fa-clock me-1"></i>~@s.DurationMinutes mins</span>
+                                </div>
+                            </div>
+
+                            <p class="text-muted small mb-4 flex-grow-1">@s.Description</p>
+
+                            <div class="d-flex align-items-center justify-content-between pt-3 border-top">
+                                <div>
+                                    <span class="text-muted small d-block">Fixed Price</span>
+                                    <span class="fw-bold fs-5 text-berry">@s.Price.ToString("0.00") <small class="fs-6 text-muted">JOD</small></span>
+                                </div>
+                                <a asp-action="Book" asp-route-serviceId="@s.ServiceId" class="btn-petti btn-berry">
+                                    Book Visit <i class="fa-solid fa-calendar-plus ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</section>

@@ -1,4 +1,5 @@
-﻿@{
+﻿@model petti.Models.ViewModels.HomeLandingViewModel
+@{
     ViewData["Title"] = "Doorstep Pet Care & Premium Essentials";
 }
 
@@ -11,8 +12,8 @@
 
             <div class="hero-copy reveal-on-load">
                 <span class="eyebrow-tag"><i class="fa-solid fa-house-chimney"></i> Now serving Amman</span>
-                <h1 style="margin-top:1rem;">Doorstep Pet Care <span class="accent-word">&amp; Premium Essentials</span></h1>
-                <p class="lead">Order food and supplies, then book a certified groomer, bather or sitter to your door — one platform, fixed prices, no stressful car rides for your pet.</p>
+                <h1 style="margin-top:1rem;">The shop and the groomer<span class="accent-word"> , both at your door.</span></h1>
+                <p class="lead">Order food and supplies, then book a certified groomer or bather to your door . one platform, fixed prices, no stressful car rides for your pet.</p>
 
                 <div class="hero-cta-row">
                     <a href="#products" class="btn-petti btn-berry"><i class="fa-solid fa-bag-shopping"></i> Shop Supplies</a>
@@ -26,25 +27,18 @@
                 </div>
             </div>
 
+            <!-- =========================================================
+                 HERO VISUAL (Circular Image & Cat Animation)
+                 ========================================================= -->
             <div class="hero-visual reveal-on-load">
-                <div class="hero-visual-card">
-                    <img src="~/images/heroCat.jfif" alt="Groomer gently brushing a pet at home">
-                </div>
-
-                <div class="floating-badge badge-top">
-                    <span class="fb-icon" style="background:var(--berry);"><i class="fa-solid fa-clock"></i></span>
-                    <div>
-                        <div class="fb-title">45 min visit</div>
-                        <div class="fb-sub">Fixed time slots</div>
+                <div class="hero-visual-wrapper">
+                    <div class="hero-visual-card circular-image">
+                        <img src="~/images/heroCat.jfif" alt="Groomer gently brushing a pet at home">
                     </div>
-                </div>
-
-                <div class="floating-badge badge-bottom">
-                    <span class="fb-icon" style="background:var(--royal);"><i class="fa-solid fa-badge-check"></i></span>
-                    <div>
-                        <div class="fb-title">Vetted caregivers</div>
-                        <div class="fb-sub">Background-checked</div>
-                    </div>
+                    <span class="animated-cat cat-1"><i class="fa-solid fa-cat"></i></span>
+                    <span class="animated-cat cat-2"><i class="fa-solid fa-cat"></i></span>
+                    <span class="animated-cat cat-3"><i class="fa-solid fa-cat"></i></span>
+                    <span class="animated-cat cat-4"><i class="fa-solid fa-cat"></i></span>
                 </div>
             </div>
 
@@ -52,21 +46,6 @@
     </div>
 </header>
 
-<!-- =========================================================
-     CATEGORY / FILTER PILLS
-     ========================================================= -->
-<section class="section-tight">
-    <div class="container-petti">
-        <div class="filter-pill-row" data-filter-group="#products-grid">
-            <button class="filter-pill active" data-filter="all"><i class="fa-solid fa-grip"></i> All</button>
-            <button class="filter-pill" data-filter="food"><i class="fa-solid fa-bone"></i> Food</button>
-            <button class="filter-pill" data-filter="toys"><i class="fa-solid fa-baseball"></i> Toys</button>
-            <button class="filter-pill" data-filter="grooming"><i class="fa-solid fa-scissors"></i> Home Grooming</button>
-            <button class="filter-pill" data-filter="bathing"><i class="fa-solid fa-shower"></i> Bathing</button>
-            <button class="filter-pill" data-filter="health"><i class="fa-solid fa-kit-medical"></i> Health</button>
-        </div>
-    </div>
-</section>
 
 <!-- =========================================================
      DOORSTEP SERVICES SHOWCASE
@@ -81,61 +60,32 @@
         </div>
 
         <div class="row g-4" style="margin-top:1.5rem;">
+            @foreach (var s in Model.Services)
+            {
+                var iconColor = s.CategoryName.ToLower().Contains("grooming") ? "var(--berry)" :
+                                s.CategoryName.ToLower().Contains("bath") ? "var(--royal)" : "#7C3AED";
+                var iconClass = string.IsNullOrEmpty(s.IconClass) ? "fa-scissors" : s.IconClass;
 
-            <div class="col-md-4">
-                <div class="service-card" data-service-name="Home Grooming" data-service-price="18 JOD">
-                    <span class="service-card-icon" style="background:var(--berry);"><i class="fa-solid fa-scissors"></i></span>
-                    <h3>Home Grooming</h3>
-                    <p class="service-desc">Full coat trim, styling and de-shedding treatment, tailored to your pet's breed.</p>
-                    <div class="service-meta-row">
-                        <span class="duration-tag"><i class="fa-solid fa-clock"></i> 60 min</span>
-                        <span class="price-tag">From 18 JOD</span>
+                <div class="col-md-4">
+                    <div class="service-card" data-service-name="@s.Name" data-service-price="@s.Price.ToString("0.00") JOD" data-service-id="@s.ServiceId">
+                        <span class="service-card-icon" style="background:@iconColor;"><i class="fa-solid @iconClass"></i></span>
+                        <h3>@s.Name</h3>
+                        <p class="service-desc">@s.Description</p>
+                        <div class="service-meta-row">
+                            <span class="duration-tag"><i class="fa-solid fa-clock"></i> @s.DurationMinutes min</span>
+                            <span class="price-tag">From @s.Price.ToString("0.00") JOD</span>
+                        </div>
+                        <ul class="service-checklist">
+                            <li><i class="fa-solid fa-circle-check"></i> Certified & background-checked caregiver</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Fully sanitized equipment at doorstep</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Real-time status tracking via portal</li>
+                        </ul>
+                        <a asp-controller="Services" asp-action="Book" asp-route-serviceId="@s.ServiceId" class="btn-petti book-visit-btn text-decoration-none">
+                            Book Visit <i class="fa-solid fa-arrow-right ms-1"></i>
+                        </a>
                     </div>
-                    <ul class="service-checklist">
-                        <li><i class="fa-solid fa-circle-check"></i> Breed-specific trim & styling</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Ear cleaning & nail trim included</li>
-                        <li><i class="fa-solid fa-circle-check"></i> De-shedding brush-out</li>
-                    </ul>
-                    <button class="btn-petti book-visit-btn">Book Visit <i class="fa-solid fa-arrow-right"></i></button>
                 </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="service-card" data-service-name="Bathing" data-service-price="12 JOD">
-                    <span class="service-card-icon" style="background:var(--royal);"><i class="fa-solid fa-shower"></i></span>
-                    <h3>Bathing</h3>
-                    <p class="service-desc">Gentle wash with hypoallergenic shampoo, blow-dry, and paw balm finish.</p>
-                    <div class="service-meta-row">
-                        <span class="duration-tag"><i class="fa-solid fa-clock"></i> 30 min</span>
-                        <span class="price-tag">From 12 JOD</span>
-                    </div>
-                    <ul class="service-checklist">
-                        <li><i class="fa-solid fa-circle-check"></i> Hypoallergenic shampoo</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Warm-air blow dry</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Paw pad conditioning balm</li>
-                    </ul>
-                    <button class="btn-petti book-visit-btn">Book Visit <i class="fa-solid fa-arrow-right"></i></button>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="service-card" data-service-name="Pet Sitting" data-service-price="9 JOD/hr">
-                    <span class="service-card-icon" style="background:#7C3AED;"><i class="fa-solid fa-house-chimney-heart"></i></span>
-                    <h3>Pet Sitting</h3>
-                    <p class="service-desc">A vetted sitter keeps your pet company, fed, and walked while you're away.</p>
-                    <div class="service-meta-row">
-                        <span class="duration-tag"><i class="fa-solid fa-clock"></i> Per hour</span>
-                        <span class="price-tag">From 9 JOD/hr</span>
-                    </div>
-                    <ul class="service-checklist">
-                        <li><i class="fa-solid fa-circle-check"></i> Feeding & fresh water refills</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Walks & play breaks</li>
-                        <li><i class="fa-solid fa-circle-check"></i> Photo updates during the visit</li>
-                    </ul>
-                    <button class="btn-petti book-visit-btn">Book Visit <i class="fa-solid fa-arrow-right"></i></button>
-                </div>
-            </div>
-
+            }
         </div>
     </div>
 </section>
@@ -153,183 +103,43 @@
         </div>
 
         <div class="row g-4" id="products-grid" style="margin-top:1.5rem;">
-
-            <div class="col-6 col-lg-3" data-category="food">
-                <div class="product-card reveal-on-load" data-name="Grain-Free Chicken Kibble 3kg" data-price="14.50 JOD">
-                    <div class="product-media">
-                        <span class="stock-badge">In stock</span>
-                        <button class="wishlist-btn" aria-label="Save to wishlist"><i class="fa-regular fa-heart"></i></button>
-                        <img src="https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=500&auto=format&fit=crop" alt="Bag of grain-free chicken kibble">
-                    </div>
-                    <div class="product-body">
-                        <div class="product-category">Food</div>
-                        <h3>Grain-Free Chicken Kibble 3kg</h3>
-                        <div class="rating-row">
-                            <span class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i></span>
-                            4.6 (312)
+            @foreach (var p in Model.BestSellingProducts)
+            {
+                <div class="col-6 col-lg-3 product-item-col" data-category="@p.CategoryName.ToLower()">
+                    <div class="product-card reveal-on-load" data-name="@p.Name" data-price="@p.Price.ToString("0.00") JOD">
+                        <div class="product-media">
+                            <span class="stock-badge">@(p.StockQuantity > 0 ? "In stock" : "Out of stock")</span>
+                            <button type="button" class="wishlist-btn" aria-label="Save to wishlist"><i class="fa-regular fa-heart"></i></button>
+                            <img src="@p.ImageUrl" alt="@p.Name">
                         </div>
-                        <div class="product-footer">
-                            <span class="product-price">14.50 JOD</span>
-                            <button class="add-cart-btn" aria-label="Add to cart"><i class="fa-solid fa-plus"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-6 col-lg-3" data-category="toys">
-                <div class="product-card reveal-on-load" data-name="Rope & Rubber Chew Bundle" data-price="6.90 JOD">
-                    <div class="product-media">
-                        <span class="stock-badge">In stock</span>
-                        <button class="wishlist-btn" aria-label="Save to wishlist"><i class="fa-regular fa-heart"></i></button>
-                        <img src="https://images.unsplash.com/photo-1591946614720-90a587da4a36?q=80&w=500&auto=format&fit=crop" alt="Rope and rubber chew toy bundle">
-                    </div>
-                    <div class="product-body">
-                        <div class="product-category">Toys</div>
-                        <h3>Rope &amp; Rubber Chew Bundle</h3>
-                        <div class="rating-row">
-                            <span class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></span>
-                            4.9 (188)
-                        </div>
-                        <div class="product-footer">
-                            <span class="product-price">6.90 JOD</span>
-                            <button class="add-cart-btn" aria-label="Add to cart"><i class="fa-solid fa-plus"></i></button>
+                        <div class="product-body">
+                            <div class="product-category">@p.CategoryName</div>
+                            <h3 title="@p.Name">@p.Name</h3>
+                            <div class="rating-row">
+                                <span class="stars">
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star-half-stroke"></i>
+                                </span>
+                                @p.AverageRating.ToString("0.0") (@p.ReviewsCount)
+                            </div>
+                            <div class="product-footer">
+                                <span class="product-price">@p.Price.ToString("0.00") JOD</span>
+                                <button type="button" class="add-cart-btn add-to-cart-btn"
+                                        data-id="@p.ProductId"
+                                        data-name="@p.Name"
+                                        data-price="@p.Price"
+                                        data-img="@p.ImageUrl"
+                                        aria-label="Add to cart">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="col-6 col-lg-3" data-category="grooming">
-                <div class="product-card reveal-on-load" data-name="De-Shedding Brush Pro" data-price="9.90 JOD">
-                    <div class="product-media">
-                        <span class="stock-badge">In stock</span>
-                        <button class="wishlist-btn" aria-label="Save to wishlist"><i class="fa-regular fa-heart"></i></button>
-                        <img src="https://images.unsplash.com/photo-1601758064135-c3b0ce7e8f39?q=80&w=500&auto=format&fit=crop" alt="Pet de-shedding grooming brush">
-                    </div>
-                    <div class="product-body">
-                        <div class="product-category">Grooming</div>
-                        <h3>De-Shedding Brush Pro</h3>
-                        <div class="rating-row">
-                            <span class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i></span>
-                            4.7 (241)
-                        </div>
-                        <div class="product-footer">
-                            <span class="product-price">9.90 JOD <span class="old-price">12.90</span></span>
-                            <button class="add-cart-btn" aria-label="Add to cart"><i class="fa-solid fa-plus"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-6 col-lg-3" data-category="health">
-                <div class="product-card reveal-on-load" data-name="Joint & Coat Supplement Chews" data-price="16.00 JOD">
-                    <div class="product-media">
-                        <span class="stock-badge">In stock</span>
-                        <button class="wishlist-btn" aria-label="Save to wishlist"><i class="fa-regular fa-heart"></i></button>
-                        <img src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=500&auto=format&fit=crop" alt="Bottle of joint and coat supplement chews">
-                    </div>
-                    <div class="product-body">
-                        <div class="product-category">Health</div>
-                        <h3>Joint &amp; Coat Supplement Chews</h3>
-                        <div class="rating-row">
-                            <span class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></span>
-                            4.8 (97)
-                        </div>
-                        <div class="product-footer">
-                            <span class="product-price">16.00 JOD</span>
-                            <button class="add-cart-btn" aria-label="Add to cart"><i class="fa-solid fa-plus"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-6 col-lg-3" data-category="bathing">
-                <div class="product-card reveal-on-load" data-name="Oatmeal Shampoo & Conditioner Set" data-price="11.50 JOD">
-                    <div class="product-media">
-                        <span class="stock-badge">In stock</span>
-                        <button class="wishlist-btn" aria-label="Save to wishlist"><i class="fa-regular fa-heart"></i></button>
-                        <img src="https://images.unsplash.com/photo-1583512603805-3cc6b41f3edb?q=80&w=500&auto=format&fit=crop" alt="Oatmeal pet shampoo and conditioner bottles">
-                    </div>
-                    <div class="product-body">
-                        <div class="product-category">Bathing</div>
-                        <h3>Oatmeal Shampoo &amp; Conditioner Set</h3>
-                        <div class="rating-row">
-                            <span class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i></span>
-                            4.5 (162)
-                        </div>
-                        <div class="product-footer">
-                            <span class="product-price">11.50 JOD</span>
-                            <button class="add-cart-btn" aria-label="Add to cart"><i class="fa-solid fa-plus"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-6 col-lg-3" data-category="toys">
-                <div class="product-card reveal-on-load" data-name="Puzzle Treat Dispenser" data-price="13.20 JOD">
-                    <div class="product-media">
-                        <span class="stock-badge">In stock</span>
-                        <button class="wishlist-btn" aria-label="Save to wishlist"><i class="fa-regular fa-heart"></i></button>
-                        <img src="https://images.unsplash.com/photo-1601758124277-f0086701be34?q=80&w=500&auto=format&fit=crop" alt="Puzzle treat dispenser toy for pets">
-                    </div>
-                    <div class="product-body">
-                        <div class="product-category">Toys</div>
-                        <h3>Puzzle Treat Dispenser</h3>
-                        <div class="rating-row">
-                            <span class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></span>
-                            4.9 (204)
-                        </div>
-                        <div class="product-footer">
-                            <span class="product-price">13.20 JOD</span>
-                            <button class="add-cart-btn" aria-label="Add to cart"><i class="fa-solid fa-plus"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-6 col-lg-3" data-category="food">
-                <div class="product-card reveal-on-load" data-name="Wet Food Variety Pack (12x)" data-price="10.80 JOD">
-                    <div class="product-media">
-                        <span class="stock-badge">In stock</span>
-                        <button class="wishlist-btn" aria-label="Save to wishlist"><i class="fa-regular fa-heart"></i></button>
-                        <img src="https://images.unsplash.com/photo-1601758176689-3e6b3b3ba2b0?q=80&w=500&auto=format&fit=crop" alt="Variety pack of wet pet food cans">
-                    </div>
-                    <div class="product-body">
-                        <div class="product-category">Food</div>
-                        <h3>Wet Food Variety Pack (12x)</h3>
-                        <div class="rating-row">
-                            <span class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i></span>
-                            4.6 (275)
-                        </div>
-                        <div class="product-footer">
-                            <span class="product-price">10.80 JOD</span>
-                            <button class="add-cart-btn" aria-label="Add to cart"><i class="fa-solid fa-plus"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-6 col-lg-3" data-category="health">
-                <div class="product-card reveal-on-load" data-name="Nail Trimmer with Safety Guard" data-price="7.40 JOD">
-                    <div class="product-media">
-                        <span class="stock-badge">In stock</span>
-                        <button class="wishlist-btn" aria-label="Save to wishlist"><i class="fa-regular fa-heart"></i></button>
-                        <img src="https://images.unsplash.com/photo-1620000617641-6d4bb2416f18?q=80&w=500&auto=format&fit=crop" alt="Pet nail trimmer with safety guard">
-                    </div>
-                    <div class="product-body">
-                        <div class="product-category">Health</div>
-                        <h3>Nail Trimmer with Safety Guard</h3>
-                        <div class="rating-row">
-                            <span class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></span>
-                            4.8 (133)
-                        </div>
-                        <div class="product-footer">
-                            <span class="product-price">7.40 JOD</span>
-                            <button class="add-cart-btn" aria-label="Add to cart"><i class="fa-solid fa-plus"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            }
         </div>
     </div>
 </section>
@@ -339,7 +149,6 @@
      ========================================================= -->
 <section class="section" id="why-petti">
     <div class="container-petti">
-
         <div class="section-heading">
             <span class="eyebrow-tag"><i class="fa-solid fa-heart"></i> Why Petti at Home?</span>
             <h2 style="margin-top:0.9rem;">Built around your pet's comfort</h2>
@@ -347,7 +156,6 @@
         </div>
 
         <div class="row g-4" style="margin-top:1.5rem;">
-
             <div class="col-md-4">
                 <div class="value-card tone-berry">
                     <span class="value-icon"><i class="fa-solid fa-car-side"></i></span>
@@ -355,7 +163,6 @@
                     <p>No carriers, no car rides, no waiting rooms — care comes to the space your pet already feels safe in.</p>
                 </div>
             </div>
-
             <div class="col-md-4">
                 <div class="value-card tone-royal">
                     <span class="value-icon"><i class="fa-solid fa-receipt"></i></span>
@@ -363,7 +170,6 @@
                     <p>Every service shows a fixed rate up front. No surprise add-ons once the caregiver arrives.</p>
                 </div>
             </div>
-
             <div class="col-md-4">
                 <div class="value-card tone-lavender">
                     <span class="value-icon"><i class="fa-solid fa-user-shield"></i></span>
@@ -371,7 +177,6 @@
                     <p>Every groomer, bather and sitter passes an ID, background and skills check before their first visit.</p>
                 </div>
             </div>
-
         </div>
     </div>
 </section>
@@ -381,119 +186,64 @@
      ========================================================= -->
 <section class="section bg-porcelain" id="testimonials">
     <div class="container-petti">
-
         <div class="section-heading">
             <span class="eyebrow-tag"><i class="fa-solid fa-comment-dots"></i> Pet parent stories</span>
             <h2 style="margin-top:0.9rem;">Verified feedback from real visits</h2>
         </div>
 
         <div class="row g-4" style="margin-top:1.5rem;">
-
-            <div class="col-md-4">
-                <div class="testimonial-card">
-                    <div class="d-flex align-items-center">
-                        <span class="testimonial-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></span>
-                        <span class="verified-tag"><i class="fa-solid fa-badge-check"></i> Verified</span>
-                    </div>
-                    <p class="testimonial-quote">The groomer arrived on time and my terrier, who hates the car, was completely relaxed the whole visit. Booking took under two minutes.</p>
-                    <div class="testimonial-person">
-                        <img class="testimonial-avatar" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop" alt="Portrait of Lina">
+            @foreach (var t in Model.Testimonials)
+            {
+                <div class="col-md-4">
+                    <div class="testimonial-card h-100 d-flex flex-column justify-content-between">
                         <div>
-                            <div class="testimonial-name">Lina H.</div>
-                            <div class="testimonial-pet">Owner of Max, Wire Fox Terrier</div>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="testimonial-stars">
+                                    @for (int i = 0; i < t.Rating; i++)
+                                    {
+                                        <i class="fa-solid fa-star"></i>
+                                    }
+                                </span>
+                                @if (t.IsFeatured)
+                                {
+                                    <span class="verified-tag"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                                }
+                            </div>
+                            <p class="testimonial-quote">@t.Feedback</p>
+                        </div>
+
+                        <div class="testimonial-person mt-3">
+                            <img class="testimonial-avatar" src="@(string.IsNullOrEmpty(t.ClientImageUrl) ? "/images/placeholder-avatar.png" : t.ClientImageUrl)" alt="Portrait of @t.ClientName">
+                            <div>
+                                <div class="testimonial-name">@t.ClientName</div>
+                                <div class="testimonial-pet">@(t.PetInfo ?? "Pet Parent")</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="testimonial-card">
-                    <div class="d-flex align-items-center">
-                        <span class="testimonial-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></span>
-                        <span class="verified-tag"><i class="fa-solid fa-badge-check"></i> Verified</span>
-                    </div>
-                    <p class="testimonial-quote">I ordered food and booked a bath for the same afternoon. The sitter even sent photo updates — my cat has never looked this fluffy.</p>
-                    <div class="testimonial-person">
-                        <img class="testimonial-avatar" src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?q=80&w=150&auto=format&fit=crop" alt="Portrait of Omar">
-                        <div>
-                            <div class="testimonial-name">Omar Q.</div>
-                            <div class="testimonial-pet">Owner of Luna, Persian Cat</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="testimonial-card">
-                    <div class="d-flex align-items-center">
-                        <span class="testimonial-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i></span>
-                        <span class="verified-tag"><i class="fa-solid fa-badge-check"></i> Verified</span>
-                    </div>
-                    <p class="testimonial-quote">Fixed pricing sold me instantly. No haggling at the door, and the caregiver's ID badge matched the app before I let them in.</p>
-                    <div class="testimonial-person">
-                        <img class="testimonial-avatar" src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=150&auto=format&fit=crop" alt="Portrait of Rana">
-                        <div>
-                            <div class="testimonial-name">Rana S.</div>
-                            <div class="testimonial-pet">Owner of Bear, Golden Retriever</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            }
         </div>
     </div>
 </section>
 
-<!-- =========================================================
-     BOOKING MODAL
-     ========================================================= -->
-<div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content petti-modal">
+@section Scripts {
+    <script>
+        // Filtering Best Selling Products via Pills
+        document.querySelectorAll('.filter-pill').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
 
-            <div class="modal-header">
-                <div class="d-flex align-items-center gap-3">
-                    <span class="service-card-icon" id="modalServiceIcon" style="width:48px;height:48px;font-size:1.1rem;margin-bottom:0;"></span>
-                    <div>
-                        <div class="modal-service-name" id="modalServiceName">Service</div>
-                        <div style="font-size:0.82rem;color:var(--ink-faint);">Fixed price: <span id="modalServicePrice" class="text-berry" style="font-weight:700;"></span></div>
-                    </div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-
-            <div class="modal-body">
-
-                <label class="form-label-petti">Choose a time slot</label>
-                <div class="slot-grid">
-                    <button type="button" class="slot-btn selected">9:00 AM</button>
-                    <button type="button" class="slot-btn">11:30 AM</button>
-                    <button type="button" class="slot-btn">1:00 PM</button>
-                    <button type="button" class="slot-btn">3:30 PM</button>
-                    <button type="button" class="slot-btn">5:00 PM</button>
-                    <button type="button" class="slot-btn">7:00 PM</button>
-                </div>
-
-                <label class="form-label-petti">Visit address</label>
-                <input type="text" class="form-control-petti" placeholder="Street, building, area" style="margin-bottom:1.1rem;">
-
-                <label class="form-label-petti">Notes for the caregiver (optional)</label>
-                <textarea class="form-control-petti" rows="2" placeholder="e.g. My dog is nervous around clippers" style="margin-bottom:1.3rem;"></textarea>
-
-                <div class="booking-summary-row">
-                    <span>Service</span>
-                    <span>Fixed rate</span>
-                </div>
-                <div class="booking-summary-row">
-                    <span>Estimated total</span>
-                    <span id="modalServicePrice2">—</span>
-                </div>
-
-                <button class="btn-petti btn-berry" style="width:100%;margin-top:1.3rem;" id="confirmBookingBtn">
-                    Confirm Booking <i class="fa-solid fa-check"></i>
-                </button>
-
-            </div>
-        </div>
-    </div>
-</div>
+                const filter = btn.dataset.filter.toLowerCase();
+                document.querySelectorAll('.product-item-col').forEach(col => {
+                    const cat = col.dataset.category || '';
+                    if (filter === 'all' || cat.includes(filter)) {
+                        col.style.display = '';
+                    } else {
+                        col.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+}

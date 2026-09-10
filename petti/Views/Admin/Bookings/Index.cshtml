@@ -1,0 +1,310 @@
+﻿@model IEnumerable<petti.Models.Booking>
+@{
+    ViewData["Title"] = "Booking Dispatch & Schedule";
+    ViewData["HeaderTitle"] = "Booking Dispatch & Schedule";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show rounded-4 mb-4" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["WarningMessage"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show rounded-4 mb-4" role="alert">
+        <i class="fa-solid fa-circle-exclamation me-2"></i> @TempData["WarningMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="admin-panel">
+    <!-- Filter Bar -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div class="d-flex flex-wrap gap-2 flex-grow-1" style="max-width: 650px;">
+            <input type="text" id="adminBookingSearch" class="form-control-petti" style="max-width: 220px;" placeholder="Search pet, customer, area...">
+            <input type="date" id="bookingDateFilter" class="form-control-petti" style="max-width: 170px;">
+            <select id="bookingStatusFilter" class="form-control-petti" style="max-width: 160px;">
+                <option value="all">All statuses</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+        </div>
+        <div>
+            <button type="button" class="btn-petti btn-ink-outline btn-sm" onclick="resetFilters()">
+                <i class="fa-solid fa-rotate-left me-1"></i> Reset
+            </button>
+        </div>
+    </div>
+
+    <!-- Bookings Table -->
+    <div style="overflow-x:auto;">
+        <table class="table-petti w-100 align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Ref</th>
+                    <th>Service</th>
+                    <th>Pet & Customer</th>
+                    <th>Date & Slot</th>
+                    <th>Address</th>
+                    <th>Status</th>
+                    <th style="width: 140px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="bookingsBody">
+                @foreach (var b in Model)
+                {
+                    var status = b.Status ?? "Pending";
+                    var badgeClass = status.ToLower() switch
+                    {
+                        "confirmed" => "status-delivered",
+                        "completed" => "badge rounded-pill bg-primary-subtle text-primary border px-3 py-1",
+                        "cancelled" => "badge rounded-pill bg-danger-subtle text-danger border px-3 py-1",
+                        _ => "status-processing"
+                    };
+
+                    <tr class="admin-booking-row"
+                        data-id="@b.BookingId"
+                        data-search="@(b.PetName?.ToLower() ?? "") @(b.Customer?.FullName?.ToLower() ?? "") @(b.Area?.ToLower() ?? "")"
+                        data-date="@b.AppointmentDate.ToString("yyyy-MM-dd")"
+                        data-status="@status.ToLower()">
+                        <td style="font-weight:700; color:var(--ink);">#BK-@b.BookingId</td>
+                        <td>
+                            <strong>@b.Service.Name</strong>
+                            <div class="text-berry small fw-bold">@b.TotalPrice.ToString("0.00") JOD</div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">
+                                <i class="fa-solid @(b.PetType?.ToLower() == "cat" ? "fa-cat" : "fa-dog") text-muted me-1"></i>
+                                @b.PetName (@b.PetType)
+                            </div>
+                            <div style="font-size:0.75rem; color:var(--ink-faint);">@(b.Customer?.FullName ?? "Customer") · @b.ContactPhone</div>
+                        </td>
+                        <td>
+                            <div><i class="fa-regular fa-calendar text-muted me-1"></i>@b.AppointmentDate.ToString("MMM dd, yyyy")</div>
+                            <div style="font-size:0.75rem; color:var(--ink-faint);"><i class="fa-regular fa-clock me-1"></i>@b.TimeSlot</div>
+                        </td>
+                        <td>
+                            <span class="small" title="@b.StreetAddress">@b.City, @b.Area</span>
+                        </td>
+                        <td>
+                            <span class="status-badge @badgeClass" id="status-badge-@b.BookingId">@status</span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-1">
+                                <!-- Confirm Quick Action -->
+                                @if (status != "Confirmed" && status != "Completed")
+                                {
+                                    <button type="button" class="table-icon-btn text-success border-0 bg-transparent"
+                                            onclick="changeBookingStatus(@b.BookingId, 'Confirmed')" title="Confirm Booking">
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
+                                }
+
+                                <!-- Reschedule Modal Trigger -->
+                                <button type="button" class="table-icon-btn border-0 bg-transparent text-primary"
+                                        onclick="openRescheduleModal(@b.BookingId, '@b.AppointmentDate.ToString("yyyy-MM-dd")', '@b.TimeSlot')" title="Reschedule">
+                                    <i class="fa-solid fa-clock-rotate-left"></i>
+                                </button>
+
+                                <!-- Cancel Quick Action -->
+                                @if (status != "Cancelled")
+                                {
+                                    <button type="button" class="table-icon-btn text-danger border-0 bg-transparent"
+                                            onclick="changeBookingStatus(@b.BookingId, 'Cancelled')" title="Cancel Visit">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pt-3 border-top mt-3" id="paginationWrapper">
+        <div class="text-muted small" id="paginationInfo">Showing 0 to 0 of 0 entries</div>
+        <div class="d-flex align-items-center gap-1" id="paginationControls"></div>
+    </div>
+</div>
+
+<!-- Reschedule Modal -->
+<div class="modal fade" id="rescheduleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+        <div class="modal-content petti-modal border-0 rounded-4 shadow">
+            <div class="modal-header border-bottom">
+                <div class="modal-service-name" id="rescheduleTitle">Reschedule Visit</div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="RescheduleBooking" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="bookingId" id="rescheduleBookingId" />
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label-petti">Select New Date</label>
+                        <input type="date" name="appointmentDate" id="rescheduleDateInput" class="form-control-petti" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label-petti">Select Time Slot</label>
+                        <select name="timeSlot" id="rescheduleSlotInput" class="form-control-petti" required>
+                            <option value="9:00 AM – 11:00 AM">9:00 AM – 11:00 AM</option>
+                            <option value="11:30 AM – 1:30 PM">11:30 AM – 1:30 PM</option>
+                            <option value="2:00 PM – 4:00 PM">2:00 PM – 4:00 PM</option>
+                            <option value="4:30 PM – 6:30 PM">4:30 PM – 6:30 PM</option>
+                            <option value="7:00 PM – 9:00 PM">7:00 PM – 9:00 PM</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-petti btn-berry w-100 justify-content-center py-2">
+                        Confirm New Schedule <i class="fa-solid fa-calendar-check ms-1"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        // Pagination & Filter Engine
+        const pageSize = 10;
+        let currentPage = 1;
+        let visibleRows = [];
+
+        const searchInput = document.getElementById('adminBookingSearch');
+        const dateInput = document.getElementById('bookingDateFilter');
+        const statusSelect = document.getElementById('bookingStatusFilter');
+        const allRows = Array.from(document.querySelectorAll('.admin-booking-row'));
+        const paginationControls = document.getElementById('paginationControls');
+        const paginationInfo = document.getElementById('paginationInfo');
+        const paginationWrapper = document.getElementById('paginationWrapper');
+
+        function applyFilterAndPagination() {
+            const search = searchInput.value.trim().toLowerCase();
+            const selectedDate = dateInput.value;
+            const status = statusSelect.value;
+
+            visibleRows = allRows.filter(row => {
+                const rowSearch = row.dataset.search;
+                const rowDate = row.dataset.date;
+                const rowStatus = row.dataset.status;
+
+                const matchesSearch = (!search || rowSearch.includes(search) || row.dataset.id.includes(search));
+                const matchesDate = (!selectedDate || rowDate === selectedDate);
+                const matchesStatus = (status === 'all' || rowStatus === status);
+
+                return matchesSearch && matchesDate && matchesStatus;
+            });
+
+            const totalPages = Math.ceil(visibleRows.length / pageSize) || 1;
+            if (currentPage > totalPages) currentPage = 1;
+
+            allRows.forEach(r => r.style.display = 'none');
+
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const pageRows = visibleRows.slice(start, end);
+            pageRows.forEach(r => r.style.display = '');
+
+            const startCount = visibleRows.length === 0 ? 0 : start + 1;
+            const endCount = Math.min(end, visibleRows.length);
+            paginationInfo.textContent = `Showing ${startCount} to ${endCount} of ${visibleRows.length} entries`;
+
+            renderPaginationButtons(totalPages);
+        }
+
+        function renderPaginationButtons(totalPages) {
+            paginationControls.innerHTML = '';
+
+            if (visibleRows.length <= pageSize) {
+                paginationWrapper.style.display = visibleRows.length === 0 ? 'none' : 'flex';
+                return;
+            } else {
+                paginationWrapper.style.display = 'flex';
+            }
+
+            const prevBtn = document.createElement('button');
+            prevBtn.type = 'button';
+            prevBtn.className = `btn btn-sm btn-light border rounded-3 px-2 ${currentPage === 1 ? 'disabled opacity-50' : ''}`;
+            prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left" style="font-size:0.75rem;"></i>';
+            prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; applyFilterAndPagination(); } };
+            paginationControls.appendChild(prevBtn);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.type = 'button';
+                const isActive = (i === currentPage);
+                pageBtn.className = `btn btn-sm rounded-3 px-3 fw-semibold ${isActive ? 'btn-berry text-white' : 'btn-light border'}`;
+                pageBtn.textContent = i;
+                pageBtn.onclick = () => { currentPage = i; applyFilterAndPagination(); };
+                paginationControls.appendChild(pageBtn);
+            }
+
+            const nextBtn = document.createElement('button');
+            nextBtn.type = 'button';
+            nextBtn.className = `btn btn-sm btn-light border rounded-3 px-2 ${currentPage === totalPages ? 'disabled opacity-50' : ''}`;
+            nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right" style="font-size:0.75rem;"></i>';
+            nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; applyFilterAndPagination(); } };
+            paginationControls.appendChild(nextBtn);
+        }
+
+        function resetFilters() {
+            searchInput.value = '';
+            dateInput.value = '';
+            statusSelect.value = 'all';
+            currentPage = 1;
+            applyFilterAndPagination();
+        }
+
+        searchInput.addEventListener('input', () => { currentPage = 1; applyFilterAndPagination(); });
+        dateInput.addEventListener('change', () => { currentPage = 1; applyFilterAndPagination(); });
+        statusSelect.addEventListener('change', () => { currentPage = 1; applyFilterAndPagination(); });
+
+        applyFilterAndPagination();
+
+        // Live Status Update via Ajax
+        async function changeBookingStatus(bookingId, newStatus) {
+            if (!confirm(`Mark booking #BK-${bookingId} as ${newStatus}?`)) return;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const formData = new FormData();
+            formData.append('bookingId', bookingId);
+            formData.append('status', newStatus);
+            formData.append('__RequestVerificationToken', token);
+
+            const response = await fetch('/Admin/UpdateBookingStatus', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                const badge = document.getElementById(`status-badge-${bookingId}`);
+                badge.textContent = newStatus;
+                badge.className = 'status-badge ' + (newStatus === 'Confirmed' ? 'status-delivered' : 'status-processing');
+
+                const row = document.querySelector(`.admin-booking-row[data-id="${bookingId}"]`);
+                if (row) row.dataset.status = newStatus.toLowerCase();
+                applyFilterAndPagination();
+            }
+        }
+
+        // Reschedule Modal
+        const rescheduleModal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
+        function openRescheduleModal(id, date, slot) {
+            document.getElementById('rescheduleBookingId').value = id;
+            document.getElementById('rescheduleTitle').textContent = `Reschedule Visit #BK-${id}`;
+            document.getElementById('rescheduleDateInput').value = date;
+            document.getElementById('rescheduleSlotInput').value = slot;
+            rescheduleModal.show();
+        }
+    </script>
+}

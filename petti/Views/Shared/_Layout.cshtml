@@ -32,16 +32,21 @@
             </a>
 
             <!-- Navigation Links -->
+            
             <div class="nav-links">
                 <a href="/#services">Home Care</a>
-                <a href="/#products">Shop</a>
-                <a href="/#why-petti">Why Petti</a>
-                <a href="/#testimonials">Stories</a>
 
                 @if (SignInManager.IsSignedIn(User))
                 {
+                    <a asp-controller="Products" asp-action="Index">Shop</a>
                     <a asp-controller="Bookings" asp-action="Index">My Bookings</a>
                     <a asp-controller="Orders" asp-action="Index">My Orders</a>
+                }
+                else
+                {
+                    <a href="/#products">Shop</a>
+                    <a href="/#why-petti">Why Petti</a>
+                    <a href="/#testimonials">Stories</a>
                 }
             </div>
 

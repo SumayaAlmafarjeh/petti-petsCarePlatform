@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using petti.Data;
-using petti.Extensions;
 using petti.Models;
 using petti.Models.ViewModels;
 
@@ -11,7 +10,6 @@ namespace petti.Controllers
 {
     public class ServicesController : Controller
     {
-        private const string PendingBookingSessionKey = "PendingBookingDraft";
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
 
@@ -22,6 +20,7 @@ namespace petti.Controllers
         }
 
         // GET: /Services
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var services = await _context.Services
@@ -36,8 +35,8 @@ namespace petti.Controllers
                     Price = s.Price,
                     DurationMinutes = s.DurationMinutes,
                     TargetPetType = s.TargetPetType ?? "All",
-                    CategoryName = s.Category.Name,
-                    IconClass = s.Category.IconClass ?? "fa-paw",
+                    CategoryName = s.Category != null ? s.Category.Name : "Care",
+                    IconClass = s.Category != null ? s.Category.IconClass : "fa-paw",
                     ImageUrl = s.Images.Select(img => img.ImageUrl).FirstOrDefault() ?? "/images/placeholder-service.jpg",
                     AverageRating = s.Reviews.Any() ? s.Reviews.Average(r => r.Rating) : 5.0,
                     ReviewsCount = s.Reviews.Count()
@@ -48,11 +47,11 @@ namespace petti.Controllers
         }
 
         // GET: /Services/Book?serviceId=1
-        // متاحة للزائر وللمستخدم المسجل
+        [Authorize]
         [HttpGet]
-        public async Task<IActionResult> Book(int? serviceId)
+        public async Task<IActionResult> Book(int serviceId)
         {
-            if (serviceId == null) return RedirectToAction(nameof(Index));
+            if (serviceId <= 0) return RedirectToAction(nameof(Index));
 
             var service = await _context.Services
                 .AsNoTracking()
@@ -68,10 +67,12 @@ namespace petti.Controllers
                 ServiceName = service.Name,
                 ServicePrice = service.Price,
                 DurationMinutes = service.DurationMinutes,
+                AppointmentDate = DateTime.Today.AddDays(1),
+                TimeSlot = "09:00 – 11:00 AM",
                 PetName = user?.PetName ?? string.Empty,
-                PetType = user?.PetType ?? "Dog",
-                City = string.IsNullOrWhiteSpace(user?.City) ? "Amman" : user.City,
-                Area = user?.Area ?? string.Empty,
+                PetType = string.IsNullOrWhiteSpace(user?.PetType) ? "Dog" : user.PetType,
+                City = "Amman",
+                Area = user?.Area ?? "Abdoun",
                 StreetAddress = user?.StreetAddress ?? string.Empty,
                 ContactPhone = user?.PhoneNumber ?? string.Empty
             };
@@ -80,6 +81,7 @@ namespace petti.Controllers
         }
 
         // POST: /Services/Book
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Book(BookingWizardViewModel model)
@@ -90,48 +92,47 @@ namespace petti.Controllers
 
             if (service == null) return NotFound();
 
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // تنظيف الحقول التي لا تُرسل يدوياً من الفورم
+            ModelState.Remove("ServiceName");
+            ModelState.Remove("City");
+
             if (!ModelState.IsValid)
             {
                 model.ServiceName = service.Name;
                 model.ServicePrice = service.Price;
+                model.DurationMinutes = service.DurationMinutes;
                 return View(model);
             }
 
-            // إذا لم يكن مسجلاً للدخول: نحفظ تفاصيل الحجز ونرسله للوجن
-            if (User?.Identity == null || !User.Identity.IsAuthenticated)
+            var fullAddress = string.IsNullOrWhiteSpace(model.BuildingDetails)
+                ? model.StreetAddress
+                : $"{model.StreetAddress}, {model.BuildingDetails}";
+
+            var booking = new Booking
             {
-                HttpContext.Session.SetObjectAsJson(PendingBookingSessionKey, model);
-                var returnUrl = Url.Action(nameof(ResumeBooking), "Services");
-                return Redirect($"/Identity/Account/Login?ReturnUrl={Uri.EscapeDataString(returnUrl ?? "/Services")}");
-            }
+                ServiceId = service.ServiceId,
+                CustomerId = user.Id,
+                AppointmentDate = model.AppointmentDate == default ? DateTime.Today.AddDays(1) : model.AppointmentDate,
+                TimeSlot = string.IsNullOrWhiteSpace(model.TimeSlot) ? "09:00 – 11:00 AM" : model.TimeSlot,
+                Status = "Confirmed",
+                TotalPrice = service.Price,
+                PetType = string.IsNullOrWhiteSpace(model.PetType) ? "Dog" : model.PetType,
+                PetName = string.IsNullOrWhiteSpace(model.PetName) ? "Pet" : model.PetName,
+                City = "Amman",
+                Area = string.IsNullOrWhiteSpace(model.Area) ? "Amman" : model.Area,
+                StreetAddress = fullAddress,
+                ContactPhone = string.IsNullOrWhiteSpace(model.ContactPhone) ? (user.PhoneNumber ?? "0790000000") : model.ContactPhone,
+                Notes = model.BehavioralNotes,
+                CreatedAt = DateTime.UtcNow
+            };
 
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
+            _context.Bookings.Add(booking);
+            await _context.SaveChangesAsync();
 
-            return await SaveBookingAndRedirect(model, service, user);
-        }
-
-        // GET: /Services/ResumeBooking
-        // بعد تسجيل الدخول يعود المستخدم إلى هنا تلقائياً لإنهاء الحجز
-        [Authorize]
-        [HttpGet]
-        public async Task<IActionResult> ResumeBooking()
-        {
-            var draft = HttpContext.Session.GetObjectFromJson<BookingWizardViewModel>(PendingBookingSessionKey);
-            if (draft == null) return RedirectToAction(nameof(Index));
-
-            var service = await _context.Services
-                .AsNoTracking()
-                .FirstOrDefaultAsync(s => s.ServiceId == draft.ServiceId && s.IsActive);
-
-            if (service == null) return NotFound();
-
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
-
-            var result = await SaveBookingAndRedirect(draft, service, user);
-            HttpContext.Session.Remove(PendingBookingSessionKey);
-            return result;
+            return RedirectToAction(nameof(Confirmation), new { id = booking.BookingId });
         }
 
         // GET: /Services/Confirmation/5
@@ -150,36 +151,6 @@ namespace petti.Controllers
             if (booking == null) return NotFound();
 
             return View(booking);
-        }
-
-        private async Task<IActionResult> SaveBookingAndRedirect(BookingWizardViewModel model, Service service, ApplicationUser user)
-        {
-            var fullAddress = string.IsNullOrWhiteSpace(model.BuildingDetails)
-                ? model.StreetAddress
-                : $"{model.StreetAddress}, {model.BuildingDetails}";
-
-            var booking = new Booking
-            {
-                ServiceId = service.ServiceId,
-                CustomerId = user.Id,
-                AppointmentDate = model.AppointmentDate,
-                TimeSlot = model.TimeSlot,
-                Status = "Confirmed",
-                TotalPrice = service.Price,
-                PetType = model.PetType,
-                PetName = model.PetName,
-                City = string.IsNullOrWhiteSpace(model.City) ? "Amman" : model.City,
-                Area = model.Area,
-                StreetAddress = fullAddress,
-                ContactPhone = model.ContactPhone,
-                Notes = string.IsNullOrWhiteSpace(model.BehavioralNotes) ? null : model.BehavioralNotes,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.Bookings.Add(booking);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Confirmation), new { id = booking.BookingId });
         }
     }
 }

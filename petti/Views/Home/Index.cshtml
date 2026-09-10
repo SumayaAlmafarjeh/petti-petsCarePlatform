@@ -1,4 +1,7 @@
-﻿@model petti.Models.ViewModels.HomeLandingViewModel
+﻿@using Microsoft.AspNetCore.Identity
+@using petti.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@model petti.Models.ViewModels.HomeLandingViewModel
 @{
     ViewData["Title"] = "Doorstep Pet Care & Premium Essentials";
 }
@@ -12,11 +15,18 @@
 
             <div class="hero-copy reveal-on-load">
                 <span class="eyebrow-tag"><i class="fa-solid fa-house-chimney"></i> Now serving Amman</span>
-                <h1 style="margin-top:1rem;">The shop and the groomer<span class="accent-word"> , both at your door.</span></h1>
-                <p class="lead">Order food and supplies, then book a certified groomer or bather to your door . one platform, fixed prices, no stressful car rides for your pet.</p>
+                <h1 style="margin-top:1rem;">The shop and the groomer<span class="accent-word">, both at your door.</span></h1>
+                <p class="lead">Order food and supplies, then book a certified groomer or bather to your door. One platform, fixed prices, no stressful car rides for your pet.</p>
 
                 <div class="hero-cta-row">
-                    <a href="#products" class="btn-petti btn-berry"><i class="fa-solid fa-bag-shopping"></i> Shop Supplies</a>
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <a asp-controller="Products" asp-action="Index" class="btn-petti btn-berry"><i class="fa-solid fa-bag-shopping"></i> Shop Supplies</a>
+                    }
+                    else
+                    {
+                        <a href="#products" class="btn-petti btn-berry"><i class="fa-solid fa-bag-shopping"></i> Shop Supplies</a>
+                    }
                     <a href="#services" class="btn-petti btn-royal-outline"><i class="fa-solid fa-calendar-check"></i> Book Home Care</a>
                 </div>
 
@@ -27,9 +37,7 @@
                 </div>
             </div>
 
-            <!-- =========================================================
-                 HERO VISUAL (Circular Image & Cat Animation)
-                 ========================================================= -->
+            <!-- HERO VISUAL -->
             <div class="hero-visual reveal-on-load">
                 <div class="hero-visual-wrapper">
                     <div class="hero-visual-card circular-image">
@@ -45,7 +53,6 @@
         </div>
     </div>
 </header>
-
 
 <!-- =========================================================
      DOORSTEP SERVICES SHOWCASE
@@ -80,7 +87,7 @@
                             <li><i class="fa-solid fa-circle-check"></i> Fully sanitized equipment at doorstep</li>
                             <li><i class="fa-solid fa-circle-check"></i> Real-time status tracking via portal</li>
                         </ul>
-                        <a asp-controller="Services" asp-action="Book" asp-route-serviceId="@s.ServiceId" class="btn-petti book-visit-btn text-decoration-none">
+                        <a href="/Services/Book?serviceId=@s.ServiceId" class="btn-petti text-decoration-none book-visit-btn" onclick="event.stopPropagation();">
                             Book Visit <i class="fa-solid fa-arrow-right ms-1"></i>
                         </a>
                     </div>
@@ -106,44 +113,63 @@
             @foreach (var p in Model.BestSellingProducts)
             {
                 <div class="col-6 col-lg-3 product-item-col" data-category="@p.CategoryName.ToLower()">
-                    <div class="product-card reveal-on-load" data-name="@p.Name" data-price="@p.Price.ToString("0.00") JOD">
-                        <div class="product-media">
+                    <div class="product-card reveal-on-load position-relative h-100 d-flex flex-column justify-content-between" data-name="@p.Name" data-price="@p.Price.ToString("0.00") JOD">
+
+                        <!-- Media Container linked to Details -->
+                        <div class="product-media position-relative">
                             <span class="stock-badge">@(p.StockQuantity > 0 ? "In stock" : "Out of stock")</span>
-                            <button type="button" class="wishlist-btn" aria-label="Save to wishlist"><i class="fa-regular fa-heart"></i></button>
-                            <img src="@p.ImageUrl" alt="@p.Name">
+                            <a asp-controller="Products" asp-action="Details" asp-route-id="@p.ProductId" class="d-block text-decoration-none">
+                                <img src="@p.ImageUrl" alt="@p.Name" style="cursor:pointer; width:100%; object-fit:contain;">
+                            </a>
                         </div>
-                        <div class="product-body">
-                            <div class="product-category">@p.CategoryName</div>
-                            <h3 title="@p.Name">@p.Name</h3>
-                            <div class="rating-row">
-                                <span class="stars">
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star-half-stroke"></i>
-                                </span>
-                                @p.AverageRating.ToString("0.0") (@p.ReviewsCount)
+
+                        <!-- Body Container linked to Details -->
+                        <div class="product-body flex-grow-1 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="product-category">@p.CategoryName</div>
+                                <h3 title="@p.Name">
+                                    <a asp-controller="Products" asp-action="Details" asp-route-id="@p.ProductId" class="text-decoration-none text-dark d-block">
+                                        @p.Name
+                                    </a>
+                                </h3>
+                                <div class="rating-row mb-2">
+                                    <span class="stars" style="color:#F59E0B;">
+                                        <i class="fa-solid fa-star"></i>
+                                        <i class="fa-solid fa-star"></i>
+                                        <i class="fa-solid fa-star"></i>
+                                        <i class="fa-solid fa-star"></i>
+                                        <i class="fa-solid fa-star-half-stroke"></i>
+                                    </span>
+                                    <span class="small text-muted">@p.AverageRating.ToString("0.0") (@p.ReviewsCount)</span>
+                                </div>
                             </div>
-                            <div class="product-footer">
-                                <span class="product-price">@p.Price.ToString("0.00") JOD</span>
+
+                            <div class="product-footer d-flex align-items-center justify-content-between pt-2 border-top">
+                                <span class="product-price fw-bold" style="color:var(--berry);">@p.Price.ToString("0.00") JOD</span>
                                 <button type="button" class="add-cart-btn add-to-cart-btn"
                                         data-id="@p.ProductId"
                                         data-name="@p.Name"
                                         data-price="@p.Price"
                                         data-img="@p.ImageUrl"
+                                        onclick="event.stopPropagation();"
                                         aria-label="Add to cart">
                                     <i class="fa-solid fa-plus"></i>
                                 </button>
                             </div>
                         </div>
+
                     </div>
                 </div>
             }
         </div>
+
+        <div class="text-center mt-5">
+            <a asp-controller="Products" asp-action="Index" class="btn-petti btn-ink-outline px-4 py-2 text-decoration-none">
+                Explore All Supplies <i class="fa-solid fa-arrow-right ms-2"></i>
+            </a>
+        </div>
     </div>
 </section>
-
 <!-- =========================================================
      WHY PETTI AT HOME
      ========================================================= -->
@@ -186,19 +212,30 @@
      ========================================================= -->
 <section class="section bg-porcelain" id="testimonials">
     <div class="container-petti">
-        <div class="section-heading">
-            <span class="eyebrow-tag"><i class="fa-solid fa-comment-dots"></i> Pet parent stories</span>
-            <h2 style="margin-top:0.9rem;">Verified feedback from real visits</h2>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="section-heading mb-0 text-start">
+                <span class="eyebrow-tag"><i class="fa-solid fa-comment-dots"></i> Pet parent stories</span>
+                <h2 style="margin-top:0.9rem;">Verified feedback from real visits</h2>
+            </div>
+
+            @if (Model.CanSubmitTestimonial)
+            {
+                <button type="button" class="btn-petti btn-berry" data-bs-toggle="modal" data-bs-target="#userTestimonialModal" onclick="resetTestimonialModal()">
+                    <i class="fa-solid fa-pen-fancy me-1"></i> Share Your Story
+                </button>
+            }
         </div>
 
-        <div class="row g-4" style="margin-top:1.5rem;">
+       <div class="row g-4" style="margin-top:1.5rem;">
             @foreach (var t in Model.Testimonials)
             {
+                var initial = !string.IsNullOrWhiteSpace(t.ClientName) ? t.ClientName.Trim()[0].ToString().ToUpper() : "P";
+
                 <div class="col-md-4">
-                    <div class="testimonial-card h-100 d-flex flex-column justify-content-between">
+                    <div class="testimonial-card h-100 d-flex flex-column justify-content-between p-4 bg-white rounded-4 border shadow-sm">
                         <div>
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="testimonial-stars">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <span class="testimonial-stars text-sunbeam small">
                                     @for (int i = 0; i < t.Rating; i++)
                                     {
                                         <i class="fa-solid fa-star"></i>
@@ -206,17 +243,25 @@
                                 </span>
                                 @if (t.IsFeatured)
                                 {
-                                    <span class="verified-tag"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                                    <span class="badge rounded-pill bg-success-subtle text-success border px-2 py-1 small">
+                                        <i class="fa-solid fa-circle-check me-1"></i> Verified
+                                    </span>
                                 }
                             </div>
-                            <p class="testimonial-quote">@t.Feedback</p>
+                            <p class="testimonial-quote text-muted mb-4" style="font-size:0.95rem; line-height: 1.6; font-style: italic;">
+                                "@t.Feedback"
+                            </p>
                         </div>
 
-                        <div class="testimonial-person mt-3">
-                            <img class="testimonial-avatar" src="@(string.IsNullOrEmpty(t.ClientImageUrl) ? "/images/placeholder-avatar.png" : t.ClientImageUrl)" alt="Portrait of @t.ClientName">
+                        <div class="testimonial-person d-flex align-items-center gap-3 pt-3 border-top">
+                            <!-- أفاتار أنيق يعتمد على الحرف الأول بألوان هوية بيتي -->
+                            <div class="d-flex align-items-center justify-content-center rounded-circle fw-bold text-white shadow-sm flex-shrink-0" 
+                                 style="width: 44px; height: 44px; background: linear-gradient(135deg, var(--berry), #BE123C); font-size: 1.1rem;">
+                                @initial
+                            </div>
                             <div>
-                                <div class="testimonial-name">@t.ClientName</div>
-                                <div class="testimonial-pet">@(t.PetInfo ?? "Pet Parent")</div>
+                                <div class="fw-bold" style="color:var(--ink); font-size: 0.95rem;">@t.ClientName</div>
+                                <div class="small text-muted">@(t.PetInfo ?? "Pet Parent")</div>
                             </div>
                         </div>
                     </div>
@@ -226,24 +271,145 @@
     </div>
 </section>
 
+<!-- Modal: Add Testimonial + In-Place Success View -->
+@if (Model.CanSubmitTestimonial)
+{
+    <div class="modal fade" id="userTestimonialModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
+            <div class="modal-content petti-modal border-0 rounded-4 shadow overflow-hidden">
+                
+                <!-- 1. Submission Form State -->
+                <div id="testimonialFormState">
+                    <div class="modal-header border-bottom px-4 pt-4 pb-3">
+                        <div class="modal-service-name fs-5 fw-bold" style="color:var(--ink);">Share Your Experience</div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <form id="ajaxTestimonialForm" class="p-4" onsubmit="submitTestimonialAjax(event)">
+                        @Html.AntiForgeryToken()
+
+                        <!-- Rating Stars Pick -->
+                        <div class="mb-4 text-center">
+                            <label class="form-label-petti d-block mb-2">How was your experience?</label>
+                            <input type="hidden" name="rating" id="modalRatingInput" value="5" />
+                            <div class="star-picker d-inline-flex gap-2" style="font-size: 2rem; cursor: pointer;">
+                                <i class="fa-solid fa-star star-item" data-value="1" style="color: #F59E0B; transition: transform 0.15s ease;"></i>
+                                <i class="fa-solid fa-star star-item" data-value="2" style="color: #F59E0B; transition: transform 0.15s ease;"></i>
+                                <i class="fa-solid fa-star star-item" data-value="3" style="color: #F59E0B; transition: transform 0.15s ease;"></i>
+                                <i class="fa-solid fa-star star-item" data-value="4" style="color: #F59E0B; transition: transform 0.15s ease;"></i>
+                                <i class="fa-solid fa-star star-item" data-value="5" style="color: #F59E0B; transition: transform 0.15s ease;"></i>
+                            </div>
+                        </div>
+
+                        <!-- Feedback Input -->
+                        <div class="mb-4">
+                            <label class="form-label-petti">Your Story & Thoughts</label>
+                            <textarea name="feedback" id="modalFeedbackInput" class="form-control-petti" rows="4" placeholder="Tell us how the visit or order went for your pet..." required style="resize:none;"></textarea>
+                        </div>
+
+                        <div id="testimonialErrorMsg" class="alert alert-danger p-2 small mb-3 text-center" style="display:none;"></div>
+
+                        <button type="submit" class="btn-petti btn-berry w-100 justify-content-center py-2 fs-6" id="submitStoryBtn">
+                            Submit Story <i class="fa-solid fa-paper-plane ms-1"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 2. Success Popup State (Inside the same Modal) -->
+                <div id="testimonialSuccessState" class="p-4 text-center" style="display:none;">
+                    <div class="my-3">
+                        <span class="success-check d-inline-flex align-items-center justify-content-center rounded-circle text-white shadow-sm mb-3" style="width: 76px; height: 76px; background-color: #10B981; font-size: 2.2rem;">
+                            <i class="fa-solid fa-check"></i>
+                        </span>
+                        <h3 class="fw-bold" style="color:var(--ink); margin-bottom: 0.5rem;">Story Submitted!</h3>
+                        <p class="text-muted small" style="line-height: 1.6; max-width: 330px; margin: 0 auto 1.5rem;">
+                            Thank you for sharing your experience! Your review is currently pending moderation and will appear on the homepage once approved.
+                        </p>
+                        <button type="button" class="btn-petti btn-berry px-4" data-bs-dismiss="modal">
+                            Got it <i class="fa-solid fa-thumbs-up ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
 @section Scripts {
     <script>
-        // Filtering Best Selling Products via Pills
-        document.querySelectorAll('.filter-pill').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+       
+       // Star Picker Logic
+        document.querySelectorAll('.star-item').forEach(star => {
+            star.addEventListener('click', function () {
+                const val = parseInt(this.dataset.value);
+                document.getElementById('modalRatingInput').value = val;
 
-                const filter = btn.dataset.filter.toLowerCase();
-                document.querySelectorAll('.product-item-col').forEach(col => {
-                    const cat = col.dataset.category || '';
-                    if (filter === 'all' || cat.includes(filter)) {
-                        col.style.display = '';
+                document.querySelectorAll('.star-item').forEach((s, idx) => {
+                    if (idx < val) {
+                        s.style.color = '#F59E0B';
                     } else {
-                        col.style.display = 'none';
+                        s.style.color = '#E2E8F0';
                     }
                 });
             });
+
+            // Hover effects
+            star.addEventListener('mouseenter', function () {
+                this.style.transform = 'scale(1.15)';
+            });
+            star.addEventListener('mouseleave', function () {
+                this.style.transform = 'scale(1)';
+            });
         });
+
+        function resetTestimonialModal() {
+            document.getElementById('testimonialFormState').style.display = 'block';
+            document.getElementById('testimonialSuccessState').style.display = 'none';
+            document.getElementById('modalFeedbackInput').value = '';
+            document.getElementById('testimonialErrorMsg').style.display = 'none';
+            document.getElementById('modalRatingInput').value = '5';
+            document.querySelectorAll('.star-item').forEach(s => {
+                s.style.color = '#F59E0B';
+            });
+        }
+
+
+
+        async function submitTestimonialAjax(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitStoryBtn');
+            const errBox = document.getElementById('testimonialErrorMsg');
+            errBox.style.display = 'none';
+
+            const form = document.getElementById('ajaxTestimonialForm');
+            const formData = new FormData(form);
+
+            btn.disabled = true;
+            btn.innerHTML = 'Submitting... <i class="fa-solid fa-spinner fa-spin ms-1"></i>';
+
+            try {
+                const res = await fetch('/Home/SubmitTestimonial', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    // إخفاء الفورم وإظهار بوب أب النجاح في نفس المكان
+                    document.getElementById('testimonialFormState').style.display = 'none';
+                    document.getElementById('testimonialSuccessState').style.display = 'block';
+                } else {
+                    errBox.textContent = data.message || 'Error submitting your story.';
+                    errBox.style.display = 'block';
+                }
+            } catch (err) {
+                errBox.textContent = 'A connection error occurred. Please try again.';
+                errBox.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Submit Story <i class="fa-solid fa-paper-plane ms-1"></i>';
+            }
+        }
     </script>
 }

@@ -7,6 +7,7 @@ namespace petti.Models.ViewModels
         public List<HomeServiceItemViewModel> Services { get; set; } = new();
         public List<HomeProductItemViewModel> BestSellingProducts { get; set; } = new();
         public List<Testimonial> Testimonials { get; set; } = new();
+        public bool CanSubmitTestimonial { get; set; }
     }
 
     public class HomeServiceItemViewModel

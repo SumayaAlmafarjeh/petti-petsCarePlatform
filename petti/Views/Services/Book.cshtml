@@ -4,10 +4,11 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<section class="section" style="padding-top:8.5rem;">
-    <div class="container-petti">
+<section class="section" style="padding-top:7.5rem; padding-bottom:4rem;">
+    <!-- توسيط الصفحة بالكامل عبر تحديد max-width و mx-auto -->
+    <div class="container-petti" style="max-width: 680px; margin-left: auto; margin-right: auto;">
 
-        <div class="breadcrumb-petti">
+        <div class="breadcrumb-petti text-center justify-content-center mb-3">
             <a asp-controller="Home" asp-action="Index">Home</a>
             <i class="fa-solid fa-chevron-right" style="font-size:0.65rem;"></i>
             <a asp-action="Index">Home Care</a>
@@ -15,63 +16,67 @@
             <span>Book</span>
         </div>
 
-        <h1 style="margin-bottom:2rem;">Book: @Model.ServiceName</h1>
+        <h1 class="text-center fw-bold" style="margin-bottom:1.8rem;">Book: @Model.ServiceName</h1>
 
-        <div class="wizard-steps" id="wizardSteps">
+        <!-- Wizard Steps Dots -->
+        <div class="wizard-steps justify-content-center mb-4" id="wizardSteps">
             <div class="wizard-step active" data-step="1"><span class="wizard-step-dot">1</span><span class="wizard-step-label">Pet Info</span></div>
             <div class="wizard-step" data-step="2"><span class="wizard-step-dot">2</span><span class="wizard-step-label">Date &amp; Time</span></div>
             <div class="wizard-step" data-step="3"><span class="wizard-step-dot">3</span><span class="wizard-step-label">Address</span></div>
             <div class="wizard-step" data-step="4"><span class="wizard-step-dot">4</span><span class="wizard-step-label">Confirm</span></div>
         </div>
 
-        <form asp-action="Book" method="post" id="bookingForm">
+        <form asp-action="Book" method="post" id="bookingForm" class="shadow-sm rounded-4 p-4 border bg-white" novalidate>
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="ServiceId" />
             <input type="hidden" asp-for="ServiceName" />
             <input type="hidden" asp-for="ServicePrice" />
-            <input type="hidden" asp-for="PetType" id="hiddenPetType" />
-            <input type="hidden" asp-for="TimeSlot" id="hiddenTimeSlot" />
-            <input type="hidden" asp-for="AppointmentDate" id="hiddenAppointmentDate" />
+            <input type="hidden" asp-for="PetType" id="hiddenPetType" value="@(string.IsNullOrEmpty(Model.PetType) ? "Dog" : Model.PetType)" />
+            <input type="hidden" asp-for="TimeSlot" id="hiddenTimeSlot" value="@(string.IsNullOrEmpty(Model.TimeSlot) ? "09:00 – 11:00 AM" : Model.TimeSlot)" />
+            <input type="hidden" asp-for="AppointmentDate" id="hiddenAppointmentDate" value="@Model.AppointmentDate.ToString("yyyy-MM-dd")" />
 
             <!-- Step 1: Pet Information -->
             <div class="wizard-panel wizard-page" data-page="1">
-                <h3 style="margin-bottom:1.2rem;">Tell us about your pet</h3>
+                <h3 style="margin-bottom:1.2rem; font-weight:700;">Tell us about your pet</h3>
 
-                <div class="pet-type-pick">
-                    <div class="pet-type-card @(Model.PetType == "Dog" ? "selected" : "")" data-pet="Dog"><i class="fa-solid fa-dog"></i> Dog</div>
-                    <div class="pet-type-card @(Model.PetType == "Cat" ? "selected" : "")" data-pet="Cat"><i class="fa-solid fa-cat"></i> Cat</div>
-                </div>
-
-                <div class="row g-3" style="margin-bottom:0.5rem;">
-                    <div class="col-md-6">
-                        <label class="form-label-petti" asp-for="PetName">Pet name</label>
-                        <input asp-for="PetName" class="form-control-petti" id="inputPetName" placeholder="Max" required />
-                        <span asp-validation-for="PetName" class="text-danger small"></span>
+                <div class="pet-type-pick d-flex gap-3 mb-3">
+                    <div class="pet-type-card flex-fill text-center p-3 border rounded-3 @(Model.PetType != "Cat" ? "selected" : "")" data-pet="Dog" style="cursor:pointer;">
+                        <i class="fa-solid fa-dog fs-4 d-block mb-1"></i> Dog
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label-petti" asp-for="Breed">Breed</label>
-                        <input asp-for="Breed" class="form-control-petti" placeholder="Wire Fox Terrier" />
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label-petti" asp-for="Age">Age (years)</label>
-                        <input asp-for="Age" class="form-control-petti" placeholder="3" min="0" />
+                    <div class="pet-type-card flex-fill text-center p-3 border rounded-3 @(Model.PetType == "Cat" ? "selected" : "")" data-pet="Cat" style="cursor:pointer;">
+                        <i class="fa-solid fa-cat fs-4 d-block mb-1"></i> Cat
                     </div>
                 </div>
 
-                <label class="form-label-petti" style="margin-top:0.8rem;">Behavioral / medical notes (optional)</label>
-                <textarea asp-for="BehavioralNotes" class="form-control-petti" rows="2" placeholder="e.g. Nervous around clippers, on joint medication"></textarea>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label-petti">Pet name</label>
+                        <input asp-for="PetName" class="form-control-petti" id="inputPetName" placeholder="e.g. Milo" />
+                        <span class="text-danger small" id="petNameError" style="display:none;">Please enter your pet's name.</span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-petti">Breed</label>
+                        <input asp-for="Breed" class="form-control-petti" placeholder="e.g. Golden Retriever" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-petti">Age (years)</label>
+                        <input asp-for="Age" type="number" min="0" class="form-control-petti" placeholder="3" />
+                    </div>
+                </div>
 
-                <div class="wizard-nav">
-                    <span></span>
-                    <button type="button" class="btn-petti btn-berry next-step">Continue <i class="fa-solid fa-arrow-right"></i></button>
+                <label class="form-label-petti">Behavioral / medical notes (optional)</label>
+                <textarea asp-for="BehavioralNotes" class="form-control-petti" rows="2" placeholder="e.g. Nervous around clippers, sensitive paws"></textarea>
+
+                <div class="wizard-nav d-flex justify-content-end mt-4">
+                    <button type="button" class="btn-petti btn-berry next-step">Continue <i class="fa-solid fa-arrow-right ms-1"></i></button>
                 </div>
             </div>
 
             <!-- Step 2: Date & Time -->
             <div class="wizard-panel wizard-page" data-page="2" style="display:none;">
-                <h3 style="margin-bottom:1.2rem;">Pick a date &amp; time slot</h3>
+                <h3 style="margin-bottom:1.2rem; font-weight:700;">Pick a date &amp; time slot</h3>
 
-                <div class="mb-3">
+                <div class="mb-4">
                     <label class="form-label-petti">Select Date</label>
                     <input type="date" class="form-control-petti" id="datePicker"
                            value="@Model.AppointmentDate.ToString("yyyy-MM-dd")"
@@ -79,72 +84,73 @@
                 </div>
 
                 <label class="form-label-petti">Available time slots</label>
-                <div class="slot-grid" style="grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));">
-                    <button type="button" class="slot-btn selected">09:00 – 11:00 AM</button>
-                    <button type="button" class="slot-btn">11:30 – 1:30 PM</button>
-                    <button type="button" class="slot-btn">3:00 – 5:00 PM</button>
+                <div class="slot-grid d-flex gap-2 flex-wrap mb-4">
+                    <button type="button" class="btn btn-sm btn-outline-secondary slot-btn selected">09:00 – 11:00 AM</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary slot-btn">11:30 – 1:30 PM</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary slot-btn">3:00 – 5:00 PM</button>
                 </div>
 
-                <div class="wizard-nav">
-                    <button type="button" class="btn-petti btn-ink-outline prev-step"><i class="fa-solid fa-arrow-left"></i> Back</button>
-                    <button type="button" class="btn-petti btn-berry next-step">Continue <i class="fa-solid fa-arrow-right"></i></button>
+                <div class="wizard-nav d-flex justify-content-between mt-4">
+                    <button type="button" class="btn-petti btn-ink-outline prev-step"><i class="fa-solid fa-arrow-left me-1"></i> Back</button>
+                    <button type="button" class="btn-petti btn-berry next-step">Continue <i class="fa-solid fa-arrow-right ms-1"></i></button>
                 </div>
             </div>
 
             <!-- Step 3: Address -->
             <div class="wizard-panel wizard-page" data-page="3" style="display:none;">
-                <h3 style="margin-bottom:1.2rem;">Where should we visit?</h3>
+                <h3 style="margin-bottom:1.2rem; font-weight:700;">Where should we visit?</h3>
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label-petti" asp-for="Area">Amman Area / Neighborhood</label>
-                        <input asp-for="Area" class="form-control-petti" id="inputArea" placeholder="e.g. Abdoun / Khalda" required />
-                        <span asp-validation-for="Area" class="text-danger small"></span>
+                        <label class="form-label-petti">Amman Area / Neighborhood</label>
+                        <input asp-for="Area" class="form-control-petti" id="inputArea" placeholder="e.g. Abdoun, Dabouq" />
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label-petti" asp-for="ContactPhone">Contact Phone</label>
-                        <input asp-for="ContactPhone" class="form-control-petti" placeholder="079 123 4567" required />
-                        <span asp-validation-for="ContactPhone" class="text-danger small"></span>
+                        <label class="form-label-petti">Contact Phone</label>
+                        <input asp-for="ContactPhone" class="form-control-petti" id="inputPhone" placeholder="079 123 4567" />
+                        <span class="text-danger small" id="phoneError" style="display:none;">Please enter a contact number.</span>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label-petti" asp-for="StreetAddress">Street address</label>
-                        <input asp-for="StreetAddress" class="form-control-petti" id="inputStreet" placeholder="Rainbow St." required />
-                        <span asp-validation-for="StreetAddress" class="text-danger small"></span>
+                        <label class="form-label-petti">Street address</label>
+                        <input asp-for="StreetAddress" class="form-control-petti" id="inputStreet" placeholder="e.g. Rainbow St." />
+                        <span class="text-danger small" id="streetError" style="display:none;">Please enter your street address.</span>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label-petti" asp-for="BuildingDetails">Building &amp; Apartment notes</label>
+                        <label class="form-label-petti">Building &amp; Apartment notes</label>
                         <input asp-for="BuildingDetails" class="form-control-petti" id="inputBuilding" placeholder="Bldg 14, Apt 3" />
                     </div>
                 </div>
-                <div class="wizard-nav">
-                    <button type="button" class="btn-petti btn-ink-outline prev-step"><i class="fa-solid fa-arrow-left"></i> Back</button>
-                    <button type="button" class="btn-petti btn-berry next-step">Continue <i class="fa-solid fa-arrow-right"></i></button>
+                <div class="wizard-nav d-flex justify-content-between mt-4">
+                    <button type="button" class="btn-petti btn-ink-outline prev-step"><i class="fa-solid fa-arrow-left me-1"></i> Back</button>
+                    <button type="button" class="btn-petti btn-berry next-step">Continue <i class="fa-solid fa-arrow-right ms-1"></i></button>
                 </div>
             </div>
 
             <!-- Step 4: Summary & Confirmation -->
             <div class="wizard-panel wizard-page" data-page="4" style="display:none;">
-                <h3 style="margin-bottom:1.2rem;">Review &amp; confirm</h3>
+                <h3 style="margin-bottom:1.2rem; font-weight:700;">Review &amp; confirm</h3>
 
-                <div class="booking-summary-row"><span>Service</span><span>@Model.ServiceName</span></div>
-                <div class="booking-summary-row"><span>Pet</span><span id="sumPet">@Model.PetName (@Model.PetType)</span></div>
-                <div class="booking-summary-row"><span>Date &amp; time</span><span id="sumSlot">@Model.AppointmentDate.ToString("MMM dd, yyyy") — @Model.TimeSlot</span></div>
-                <div class="booking-summary-row"><span>Address</span><span id="sumAddress">@Model.Area, Amman</span></div>
+                <div class="d-flex justify-content-between py-2 border-bottom"><span>Service</span><strong>@Model.ServiceName</strong></div>
+                <div class="d-flex justify-content-between py-2 border-bottom"><span>Pet</span><strong id="sumPet">@Model.PetName (@Model.PetType)</strong></div>
+                <div class="d-flex justify-content-between py-2 border-bottom"><span>Date &amp; time</span><strong id="sumSlot">@Model.AppointmentDate.ToString("yyyy-MM-dd") — @Model.TimeSlot</strong></div>
+                <div class="d-flex justify-content-between py-2 border-bottom"><span>Address</span><strong id="sumAddress">@Model.Area, Amman</strong></div>
 
-                <label class="form-label-petti" style="margin-top:1.2rem;">Caregiver checklist</label>
-                <ul class="service-checklist">
-                    <li><i class="fa-solid fa-circle-check"></i> ID-verified specialist dispatched to your address</li>
-                    <li><i class="fa-solid fa-circle-check"></i> All grooming tools sanitized before your visit</li>
-                    <li><i class="fa-solid fa-circle-check"></i> Live status updates from booking to completion</li>
+                <label class="form-label-petti mt-3">Caregiver checklist</label>
+                <ul class="list-unstyled mb-3">
+                    <li class="mb-1"><i class="fa-solid fa-circle-check text-success me-2"></i> ID-verified specialist dispatched to your address</li>
+                    <li class="mb-1"><i class="fa-solid fa-circle-check text-success me-2"></i> All grooming tools sanitized before your visit</li>
+                    <li class="mb-1"><i class="fa-solid fa-circle-check text-success me-2"></i> Live status updates from booking to completion</li>
                 </ul>
 
-                <div class="booking-summary-row" style="font-size:1.05rem;">
+                <div class="d-flex justify-content-between py-3 border-top mt-2" style="font-size:1.15rem;">
                     <span>Total service fee</span>
                     <span class="text-berry fw-bold">@Model.ServicePrice.ToString("0.00") JOD</span>
                 </div>
 
-                <div class="wizard-nav">
-                    <button type="button" class="btn-petti btn-ink-outline prev-step"><i class="fa-solid fa-arrow-left"></i> Back</button>
-                    <button type="submit" class="btn-petti btn-berry" id="confirmWizardBtn">Confirm Booking <i class="fa-solid fa-check ms-1"></i></button>
+                <div class="wizard-nav d-flex justify-content-between mt-4">
+                    <button type="button" class="btn-petti btn-ink-outline prev-step"><i class="fa-solid fa-arrow-left me-1"></i> Back</button>
+                    <button type="button" class="btn-petti btn-berry px-4" id="submitBookingBtn">
+                        Confirm Booking <i class="fa-solid fa-check ms-1"></i>
+                    </button>
                 </div>
             </div>
         </form>
@@ -157,7 +163,7 @@
         let currentStep = 1;
 
         function syncSummary() {
-            const petName = document.getElementById('inputPetName').value || 'My Pet';
+            const petName = document.getElementById('inputPetName').value.trim() || 'My Pet';
             const petType = document.getElementById('hiddenPetType').value;
             document.getElementById('sumPet').textContent = `${petName} (${petType})`;
 
@@ -166,8 +172,8 @@
             document.getElementById('hiddenAppointmentDate').value = dateVal;
             document.getElementById('sumSlot').textContent = `${dateVal} — ${slotVal}`;
 
-            const area = document.getElementById('inputArea').value || 'Amman';
-            const street = document.getElementById('inputStreet').value || '';
+            const area = document.getElementById('inputArea').value.trim() || 'Amman';
+            const street = document.getElementById('inputStreet').value.trim();
             document.getElementById('sumAddress').textContent = street ? `${street}, ${area}` : area;
         }
 
@@ -184,26 +190,74 @@
         }
 
         document.addEventListener('click', (e) => {
-            if (e.target.closest('.next-step')) goToStep(Math.min(4, currentStep + 1));
-            if (e.target.closest('.prev-step')) goToStep(Math.max(1, currentStep - 1));
+            // Next
+            if (e.target.closest('.next-step')) {
+                        if (currentStep === 1) {
+                    const name = document.getElementById('inputPetName').value.trim();
+                    if (!name) {
+                        document.getElementById('petNameError').style.display = 'block';
+                        return;
+                    }
+                    document.getElementById('petNameError').style.display = 'none';
+                        }
+                if (currentStep === 3) {
+                    const street = document.getElementById('inputStreet').value.trim();
+                    const phone = document.getElementById('inputPhone').value.trim();
+                    let hasErr = false;
 
-            const petCard = e.target.closest('.pet-type-card');
-            if (petCard) {
-                document.querySelectorAll('.pet-type-card').forEach(c => c.classList.remove('selected'));
-                petCard.classList.add('selected');
-                document.getElementById('hiddenPetType').value = petCard.dataset.pet;
-            }
+                    if (!street) {
+                        document.getElementById('streetError').style.display = 'block';
+                                hasErr = true;
+                    } else {
+                        document.getElementById('streetError').style.display = 'none';
+                    }
 
-            const slotBtn = e.target.closest('.slot-btn');
-            if (slotBtn) {
-                document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
-                slotBtn.classList.add('selected');
-                document.getElementById('hiddenTimeSlot').value = slotBtn.textContent.trim();
-            }
-        });
+                            if (!phone) {
+                                document.getElementById('phoneError').style.display = 'block';
+                                hasErr = true;
+                            } else {
+                                document.getElementById('phoneError').style.display = 'none';
+                            }
 
-        document.getElementById('datePicker')?.addEventListener('change', (e) => {
-            document.getElementById('hiddenAppointmentDate').value = e.target.value;
-        });
+                            if (hasErr) return;
+                        }
+                        goToStep(Math.min(4, currentStep + 1));
+                    }
+
+                    // Prev
+                    if (e.target.closest('.prev-step')) {
+                        goToStep(Math.max(1, currentStep - 1));
+                    }
+
+                    // Pet Selection
+                    const petCard = e.target.closest('.pet-type-card');
+                    if (petCard) {
+                        document.querySelectorAll('.pet-type-card').forEach(c => c.classList.remove('selected', 'border-primary', 'bg-light'));
+                        petCard.classList.add('selected', 'border-primary', 'bg-light');
+                        document.getElementById('hiddenPetType').value = petCard.dataset.pet;
+                    }
+
+                    // Slot Selection
+                    const slotBtn = e.target.closest('.slot-btn');
+                    if (slotBtn) {
+                        document.querySelectorAll('.slot-btn').forEach(b => {
+                            b.classList.remove('selected', 'btn-primary', 'text-white');
+                            b.classList.add('btn-outline-secondary');
+                        });
+                        slotBtn.classList.add('selected', 'btn-primary', 'text-white');
+                        slotBtn.classList.remove('btn-outline-secondary');
+                        document.getElementById('hiddenTimeSlot').value = slotBtn.textContent.trim();
+                    }
+                });
+
+                document.getElementById('datePicker')?.addEventListener('change', (e) => {
+                    document.getElementById('hiddenAppointmentDate').value = e.target.value;
+                });
+
+                // زر التأكيد النهائي يرسل الفورم برمجياً بدون قيود validation مخفية
+                document.getElementById('submitBookingBtn')?.addEventListener('click', () => {
+                    syncSummary();
+                    document.getElementById('bookingForm').submit();
+                });
     </script>
 }

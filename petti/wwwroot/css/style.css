@@ -1749,7 +1749,7 @@ a {
     width: 96px;
     height: 96px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--berry), var(--royal));
+    background: linear-gradient(135deg, #4CAF50, #31eb25);
     display: flex;
     align-items: center;
     justify-content: center;

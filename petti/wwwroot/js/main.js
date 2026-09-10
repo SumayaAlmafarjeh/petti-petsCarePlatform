@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.book-visit-btn').forEach((btn) => {
         btn.addEventListener('click', (e) => {
-            e.preventDefault();
+           //0 e.preventDefault();
             const card = btn.closest('.service-card');
             if (!card || !bookingModal) return;
 

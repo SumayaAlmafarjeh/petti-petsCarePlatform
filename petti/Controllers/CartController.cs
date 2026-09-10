@@ -180,23 +180,29 @@ namespace petti.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
+            // إزالة التحقق من Cart داخل ModelState لأنها لا تُرسل من الفورم
+            ModelState.Remove("Cart");
+
             if (!ModelState.IsValid)
             {
                 model.Cart = new CartDrawerViewModel { Items = cart };
                 return View(model);
             }
 
+            var cartDrawer = new CartDrawerViewModel { Items = cart };
+
+            // 1. إنشاء وحفظ الطلب
             var order = new Order
             {
                 CustomerId = user.Id,
                 OrderDate = DateTime.UtcNow,
                 Status = "Pending",
-                PaymentMethod = model.PaymentMethod,
-                TotalAmount = new CartDrawerViewModel { Items = cart }.GrandTotal,
+                PaymentMethod = model.PaymentMethod ?? "CashOnDelivery",
+                TotalAmount = cartDrawer.GrandTotal,
                 City = "Amman",
-                Area = model.Area,
-                StreetAddress = model.StreetAddress,
-                PhoneNumber = model.PhoneNumber,
+                Area = string.IsNullOrWhiteSpace(model.Area) ? "Amman" : model.Area,
+                StreetAddress = string.IsNullOrWhiteSpace(model.StreetAddress) ? "Street Address" : model.StreetAddress,
+                PhoneNumber = string.IsNullOrWhiteSpace(model.PhoneNumber) ? (user.PhoneNumber ?? "0790000000") : model.PhoneNumber,
                 DeliveryNotes = model.DeliveryNotes,
                 OrderItems = cart.Select(item => new OrderItem
                 {
@@ -205,6 +211,26 @@ namespace petti.Controllers
                     UnitPrice = item.Price
                 }).ToList()
             };
+
+            _context.Orders.Add(order);
+
+            // 2. تحديث مخزون المنتجات
+            foreach (var item in cart)
+            {
+                var product = await _context.Products.FindAsync(item.ProductId);
+                if (product != null)
+                {
+                    product.StockQuantity = Math.Max(0, product.StockQuantity - item.Quantity);
+                }
+            }
+
+            // حفظ كل التغييرات وتوليد OrderId حقيقي
+            await _context.SaveChangesAsync();
+
+            // 3. تفريغ السلة من الـ Session
+            HttpContext.Session.Remove(CartSessionKey);
+
+            // 4. التوجيه لصفحة النجاح برقم الطلب الحقيقي
             return RedirectToAction(nameof(OrderSuccess), new { orderId = order.OrderId });
         }
 

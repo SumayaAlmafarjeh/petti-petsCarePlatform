@@ -66,7 +66,7 @@
         <table class="table-petti w-100 align-middle mb-0" id="testimonialsTable">
             <thead>
                 <tr>
-                    <th style="width: 50px;">Avatar</th>
+                    <th style="width: 50px;">User</th>
                     <th>Customer</th>
                     <th>Rating</th>
                     <th style="min-width: 280px;">Feedback Quote</th>
@@ -78,9 +78,7 @@
                 @foreach (var t in Model)
                 {
                     var status = t.Status ?? "Pending";
-                    var avatar = string.IsNullOrWhiteSpace(t.ClientImageUrl)
-                        ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop"
-                        : t.ClientImageUrl;
+                    var initial = !string.IsNullOrWhiteSpace(t.ClientName) ? t.ClientName.Trim()[0].ToString().ToUpper() : "P";
 
                     var statusBadgeClass = status switch
                     {
@@ -91,7 +89,10 @@
 
                     <tr class="admin-testimonial-row" data-id="@t.TestimonialId" data-status="@status">
                         <td>
-                            <img src="@avatar" alt="@t.ClientName" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--line);">
+                            <div class="d-flex align-items-center justify-content-center rounded-circle fw-bold text-white shadow-sm"
+                                 style="width: 38px; height: 38px; background: linear-gradient(135deg, var(--berry), #BE123C); font-size: 0.95rem;">
+                                @initial
+                            </div>
                         </td>
                         <td>
                             <strong style="color:var(--ink);">@t.ClientName</strong>

@@ -5,7 +5,7 @@
 }
 
 <section class="section" style="padding-top:7.5rem; padding-bottom:4rem;">
-    <!-- توسيط الصفحة بالكامل عبر تحديد max-width و mx-auto -->
+   
     <div class="container-petti" style="max-width: 680px; margin-left: auto; margin-right: auto;">
 
         <div class="breadcrumb-petti text-center justify-content-center mb-3">
@@ -131,7 +131,7 @@
 
                 <div class="d-flex justify-content-between py-2 border-bottom"><span>Service</span><strong>@Model.ServiceName</strong></div>
                 <div class="d-flex justify-content-between py-2 border-bottom"><span>Pet</span><strong id="sumPet">@Model.PetName (@Model.PetType)</strong></div>
-                <div class="d-flex justify-content-between py-2 border-bottom"><span>Date &amp; time</span><strong id="sumSlot">@Model.AppointmentDate.ToString("yyyy-MM-dd") — @Model.TimeSlot</strong></div>
+                <div class="d-flex justify-content-between py-2 border-bottom"><span>Date &amp; time</span><strong id="sumSlot">@Model.AppointmentDate.ToString("yyyy-MM-dd") / @Model.TimeSlot</strong></div>
                 <div class="d-flex justify-content-between py-2 border-bottom"><span>Address</span><strong id="sumAddress">@Model.Area, Amman</strong></div>
 
                 <label class="form-label-petti mt-3">Caregiver checklist</label>

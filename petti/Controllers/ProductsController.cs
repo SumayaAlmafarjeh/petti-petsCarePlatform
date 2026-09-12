@@ -37,7 +37,7 @@ namespace petti.Controllers
                     CategoryId = p.CategoryId,
                     ImageUrl = p.Images.Select(img => img.ImageUrl).FirstOrDefault() ?? "/images/placeholder-product.png",
                     AverageRating = p.Reviews.Any() ? p.Reviews.Average(r => r.Rating) : 5.0,
-                    ReviewsCount = p.Reviews.Count()
+                    ReviewsCount = p.Reviews.Count
                 })
                 .ToListAsync();
 
@@ -70,7 +70,6 @@ namespace petti.Controllers
                 var user = await _userManager.GetUserAsync(User);
                 if (user != null)
                 {
-                    // التحقق من شراء المستخدم للمنتج في أي طلب مسجل له
                     canReview = await _context.Orders
                         .AsNoTracking()
                         .Where(o => o.CustomerId == user.Id)

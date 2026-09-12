@@ -118,8 +118,8 @@
                         <!-- Media Container linked to Details -->
                         <div class="product-media position-relative">
                             <span class="stock-badge">@(p.StockQuantity > 0 ? "In stock" : "Out of stock")</span>
-                            <a asp-controller="Products" asp-action="Details" asp-route-id="@p.ProductId" class="d-block text-decoration-none">
-                                <img src="@p.ImageUrl" alt="@p.Name" style="cursor:pointer; width:100%; object-fit:contain;">
+                            <a asp-controller="Products" asp-action="Details" asp-route-id="@p.ProductId" class="d-block h-100">
+                                <img src="@p.ImageUrl" alt="@p.Name" style="cursor:pointer;">
                             </a>
                         </div>
 
@@ -132,15 +132,27 @@
                                         @p.Name
                                     </a>
                                 </h3>
-                                <div class="rating-row mb-2">
-                                    <span class="stars" style="color:#F59E0B;">
-                                        <i class="fa-solid fa-star"></i>
-                                        <i class="fa-solid fa-star"></i>
-                                        <i class="fa-solid fa-star"></i>
-                                        <i class="fa-solid fa-star"></i>
-                                        <i class="fa-solid fa-star-half-stroke"></i>
-                                    </span>
-                                    <span class="small text-muted">@p.AverageRating.ToString("0.0") (@p.ReviewsCount)</span>
+
+                                <!-- Rating Section: Shown Only if Real Reviews Exist -->
+                                <div class="mb-2" style="min-height: 22px;">
+                                    @if (p.ReviewsCount > 0)
+                                    {
+                                        <div class="rating-row">
+                                            <span class="stars" style="color:#F59E0B;">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    <i class="fa-solid fa-star @(i <= Math.Round(p.AverageRating) ? "" : "text-muted opacity-25")"></i>
+                                                }
+                                            </span>
+                                            <span class="small text-muted">@p.AverageRating.ToString("0.0") (@p.ReviewsCount)</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill bg-light text-muted border px-2 py-1" style="font-size: 0.72rem; font-weight: 500;">
+                                            <i class="fa-regular fa-sparkles me-1 text-sunbeam"></i> New arrival
+                                        </span>
+                                    }
                                 </div>
                             </div>
 
@@ -170,6 +182,7 @@
         </div>
     </div>
 </section>
+
 <!-- =========================================================
      WHY PETTI AT HOME
      ========================================================= -->
@@ -186,7 +199,7 @@
                 <div class="value-card tone-berry">
                     <span class="value-icon"><i class="fa-solid fa-car-side"></i></span>
                     <h3>Zero travel anxiety</h3>
-                    <p>No carriers, no car rides, no waiting rooms — care comes to the space your pet already feels safe in.</p>
+                    <p>No carriers, no car rides, no waiting rooms care comes to the space your pet already feels safe in.</p>
                 </div>
             </div>
             <div class="col-md-4">
@@ -226,7 +239,7 @@
             }
         </div>
 
-       <div class="row g-4" style="margin-top:1.5rem;">
+        <div class="row g-4" style="margin-top:1.5rem;">
             @foreach (var t in Model.Testimonials)
             {
                 var initial = !string.IsNullOrWhiteSpace(t.ClientName) ? t.ClientName.Trim()[0].ToString().ToUpper() : "P";
@@ -254,8 +267,7 @@
                         </div>
 
                         <div class="testimonial-person d-flex align-items-center gap-3 pt-3 border-top">
-                            <!-- أفاتار أنيق يعتمد على الحرف الأول بألوان هوية بيتي -->
-                            <div class="d-flex align-items-center justify-content-center rounded-circle fw-bold text-white shadow-sm flex-shrink-0" 
+                            <div class="d-flex align-items-center justify-content-center rounded-circle fw-bold text-white shadow-sm flex-shrink-0"
                                  style="width: 44px; height: 44px; background: linear-gradient(135deg, var(--berry), #BE123C); font-size: 1.1rem;">
                                 @initial
                             </div>
@@ -277,7 +289,7 @@
     <div class="modal fade" id="userTestimonialModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
             <div class="modal-content petti-modal border-0 rounded-4 shadow overflow-hidden">
-                
+
                 <!-- 1. Submission Form State -->
                 <div id="testimonialFormState">
                     <div class="modal-header border-bottom px-4 pt-4 pb-3">
@@ -338,8 +350,93 @@
 
 @section Scripts {
     <script>
-       
-       // Star Picker Logic
+        document.querySelectorAll('.filter-pill').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const filter = btn.dataset.filter.toLowerCase();
+                document.querySelectorAll('.product-item-col').forEach(col => {
+                    const cat = col.dataset.category || '';
+                    if (filter === 'all' || cat.includes(filter)) {
+                        col.style.display = '';
+                    } else {
+                        col.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        function showHomePettiToast(title, priceText, imgSrc) {
+            const toast = document.getElementById('cartToast');
+            if (!toast) return;
+
+            const toastImg = document.getElementById('toastImg');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastPrice = document.getElementById('toastPrice');
+
+            if (toastImg) toastImg.src = imgSrc || '/images/placeholder-product.png';
+            if (toastTitle) toastTitle.textContent = title;
+            if (toastPrice) toastPrice.textContent = priceText;
+
+            toast.classList.add('show');
+
+            if (window._cartToastTimeout) clearTimeout(window._cartToastTimeout);
+            window._cartToastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        document.getElementById('toastClose')?.addEventListener('click', () => {
+            document.getElementById('cartToast')?.classList.remove('show');
+        });
+
+        document.querySelectorAll('.add-cart-btn').forEach(btn => {
+            btn.addEventListener('click', async function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const button = this;
+                const productId = button.dataset.id;
+                const productName = button.dataset.name;
+                const productPrice = button.dataset.price;
+                const productImg = button.dataset.img;
+
+                button.disabled = true;
+                const originalHtml = button.innerHTML;
+                button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+                const formData = new FormData();
+                formData.append('productId', productId);
+                formData.append('quantity', 1);
+
+                try {
+                    const res = await fetch('/Cart/AddToCart', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (res.redirected) {
+                        window.location.href = res.url;
+                        return;
+                    }
+
+                    const data = await res.json();
+                    if (data.success) {
+                        const badge = document.getElementById('cartBadge');
+                        if (badge) badge.textContent = data.itemsCount;
+
+                        showHomePettiToast(productName, `${parseFloat(productPrice).toFixed(2)} JOD`, productImg);
+                    }
+                } catch (err) {
+                    console.error("Cart add error:", err);
+                } finally {
+                    button.disabled = false;
+                    button.innerHTML = originalHtml;
+                }
+            });
+        });
+
         document.querySelectorAll('.star-item').forEach(star => {
             star.addEventListener('click', function () {
                 const val = parseInt(this.dataset.value);
@@ -354,7 +451,6 @@
                 });
             });
 
-            // Hover effects
             star.addEventListener('mouseenter', function () {
                 this.style.transform = 'scale(1.15)';
             });
@@ -373,8 +469,6 @@
                 s.style.color = '#F59E0B';
             });
         }
-
-
 
         async function submitTestimonialAjax(e) {
             e.preventDefault();
@@ -396,7 +490,6 @@
                 const data = await res.json();
 
                 if (data.success) {
-                    // إخفاء الفورم وإظهار بوب أب النجاح في نفس المكان
                     document.getElementById('testimonialFormState').style.display = 'none';
                     document.getElementById('testimonialSuccessState').style.display = 'block';
                 } else {

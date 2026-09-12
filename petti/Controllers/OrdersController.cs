@@ -30,7 +30,8 @@ namespace petti.Controllers
                 .Where(o => o.CustomerId == user.Id)
                 .OrderByDescending(o => o.OrderDate)
                 .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
+                    .ThenInclude(oi => oi.Product)
+                        .ThenInclude(p => p.Images) 
                 .ToListAsync();
 
             return View(orders);
@@ -45,7 +46,8 @@ namespace petti.Controllers
             var order = await _context.Orders
                 .AsNoTracking()
                 .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
+                    .ThenInclude(oi => oi.Product)
+                        .ThenInclude(p => p.Images) 
                 .FirstOrDefaultAsync(o => o.OrderId == id && o.CustomerId == user.Id);
 
             if (order == null) return NotFound();

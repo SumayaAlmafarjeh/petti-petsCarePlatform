@@ -80,7 +80,7 @@ namespace petti.Areas.Identity.Pages.Account
 
                 if (result.Succeeded)
                 {
-                    // التأكد من وجود رتبة Customer وإسنادها للمستخدم الجديد
+                    
                     if (!await _roleManager.RoleExistsAsync("Customer"))
                     {
                         await _roleManager.CreateAsync(new IdentityRole("Customer"));

@@ -95,7 +95,7 @@ namespace petti.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
-            // تنظيف الحقول التي لا تُرسل يدوياً من الفورم
+            
             ModelState.Remove("ServiceName");
             ModelState.Remove("City");
 

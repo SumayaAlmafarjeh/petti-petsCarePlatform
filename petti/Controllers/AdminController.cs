@@ -12,6 +12,7 @@ using System.IO;
 namespace petti.Controllers
 {
     [Authorize]
+    [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -73,6 +74,7 @@ namespace petti.Controllers
         // POST: /Admin/ConfirmBooking
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ConfirmBooking(int id)
         {
             var booking = await _context.Bookings.FindAsync(id);
@@ -86,6 +88,8 @@ namespace petti.Controllers
 
         // GET: /Admin/Products
         [HttpGet]
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> Products()
         {
             var products = await _context.Products
@@ -105,6 +109,7 @@ namespace petti.Controllers
 
         // GET: /Admin/ProductCreate
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ProductCreate()
         {
             var categories = await _context.Categories
@@ -124,6 +129,7 @@ namespace petti.Controllers
 
         // GET: /Admin/ProductEdit/5
         [HttpGet]
+        [Authorize(Roles = "Admin")]    
         public async Task<IActionResult> ProductEdit(int id)
         {
             var product = await _context.Products
@@ -163,6 +169,7 @@ namespace petti.Controllers
         // POST: /Admin/ProductSave
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ProductSave(AdminProductFormViewModel model)
         {
             if (!ModelState.IsValid)
@@ -175,7 +182,7 @@ namespace petti.Controllers
 
                 if (model.ProductId > 0)
                 {
-                    // جلب القائمة أولاً إلى الذاكرة لتفادي خطأ EF Core
+                    
                     var dbImgs = await _context.ProductImages
                         .Where(img => img.ProductId == model.ProductId)
                         .ToListAsync();
@@ -224,7 +231,7 @@ namespace petti.Controllers
                 product.StockQuantity = model.StockQuantity;
                 product.IsActive = model.IsActive;
 
-                // نقل الصورة الأساسية المختارة إلى بداية القائمة
+                
                 if (model.PrimaryExistingImageId.HasValue)
                 {
                     var chosen = product.Images.FirstOrDefault(i => i.ProductImageId == model.PrimaryExistingImageId.Value);
@@ -243,7 +250,7 @@ namespace petti.Controllers
                 }
             }
 
-            // رفع الصور الجديدة
+           
             if (model.ImageFiles != null && model.ImageFiles.Any())
             {
                 string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "products");
@@ -291,9 +298,10 @@ namespace petti.Controllers
             return RedirectToAction(nameof(Products));
         }
 
-        // POST: /Admin/DeleteProductImage (Ajax)
+        // POST: /Admin/DeleteProductImage 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteProductImage(int imageId)
         {
             var image = await _context.ProductImages.FindAsync(imageId);
@@ -313,6 +321,7 @@ namespace petti.Controllers
         // POST: /Admin/ProductToggleStatus/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ProductToggleStatus(int id)
         {
             var product = await _context.Products.FindAsync(id);
@@ -328,6 +337,7 @@ namespace petti.Controllers
         // POST: /Admin/ProductDelete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ProductDelete(int id)
         {
             var product = await _context.Products
@@ -364,6 +374,7 @@ namespace petti.Controllers
         }
         // GET: /Admin/Categories
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Categories()
         {
             var categories = await _context.Categories
@@ -378,9 +389,10 @@ namespace petti.Controllers
         }
 
         // POST: /Admin/CategorySave
-        // POST: /Admin/CategorySave
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CategorySave(Category category)
         {
             if (string.IsNullOrWhiteSpace(category.Name))
@@ -389,7 +401,7 @@ namespace petti.Controllers
                 return RedirectToAction(nameof(Categories));
             }
 
-            // توليد الأيقونة تلقائياً وفق اسم ونوع الفئة
+            
             string DetermineIcon(string name, string type)
             {
                 var n = name.ToLower();
@@ -431,6 +443,7 @@ namespace petti.Controllers
         // POST: /Admin/CategoryDelete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CategoryDelete(int id)
         {
             var category = await _context.Categories
@@ -440,7 +453,7 @@ namespace petti.Controllers
 
             if (category == null) return NotFound();
 
-            // منع الحذف في حال وجود منتجات أو خدمات تابعة للفئة لحماية سلامة البيانات
+            
             if (category.Products.Any() || category.Services.Any())
             {
                 TempData["WarningMessage"] = $"Cannot delete '{category.Name}' because it has active products or services linked to it.";
@@ -454,6 +467,7 @@ namespace petti.Controllers
         }
         // GET: /Admin/Orders
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Orders()
         {
             var orders = await _context.Orders
@@ -470,6 +484,7 @@ namespace petti.Controllers
         // POST: /Admin/UpdateOrderStatus
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateOrderStatus(int orderId, string status)
         {
             var order = await _context.Orders.FindAsync(orderId);
@@ -482,6 +497,7 @@ namespace petti.Controllers
         }
         // GET: /Admin/Services
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Services()
         {
             var services = await _context.Services
@@ -502,6 +518,7 @@ namespace petti.Controllers
         // POST: /Admin/ServiceSave
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ServiceSave(Service service)
         {
             if (string.IsNullOrWhiteSpace(service.Name) || service.Price <= 0 || service.DurationMinutes <= 0)
@@ -540,6 +557,7 @@ namespace petti.Controllers
         // POST: /Admin/ServiceToggleStatus/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ServiceToggleStatus(int id)
         {
             var service = await _context.Services.FindAsync(id);
@@ -555,6 +573,7 @@ namespace petti.Controllers
         // POST: /Admin/ServiceDelete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ServiceDelete(int id)
         {
             var service = await _context.Services
@@ -563,7 +582,7 @@ namespace petti.Controllers
 
             if (service == null) return NotFound();
 
-            // فحص إذا كانت الخدمة محجوزة مسبقاً لحماية البيانات
+            
             if (service.Bookings.Any())
             {
                 service.IsActive = false; // Soft Delete
@@ -581,6 +600,7 @@ namespace petti.Controllers
         }
         // GET: /Admin/Bookings
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Bookings()
         {
             var bookings = await _context.Bookings
@@ -597,6 +617,7 @@ namespace petti.Controllers
         // POST: /Admin/UpdateBookingStatus
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateBookingStatus(int bookingId, string status)
         {
             var booking = await _context.Bookings.FindAsync(bookingId);
@@ -611,6 +632,7 @@ namespace petti.Controllers
         // POST: /Admin/RescheduleBooking
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RescheduleBooking(int bookingId, DateTime appointmentDate, string timeSlot)
         {
             var booking = await _context.Bookings.FindAsync(bookingId);
@@ -629,8 +651,9 @@ namespace petti.Controllers
             return RedirectToAction(nameof(Bookings));
         }
         // GET: /Admin/Users
-        // GET: /Admin/Users
+        
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Users()
         {
             var users = await _userManager.Users
@@ -658,6 +681,7 @@ namespace petti.Controllers
         // POST: /Admin/ToggleUserStatus
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ToggleUserStatus(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -680,6 +704,7 @@ namespace petti.Controllers
         }
         // GET: /Admin/Reviews
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Reviews()
         {
             var reviews = await _context.Reviews
@@ -700,6 +725,7 @@ namespace petti.Controllers
         // POST: /Admin/ModerateReview
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ModerateReview(int reviewId, string status)
         {
             var review = await _context.Reviews.FindAsync(reviewId);
@@ -718,6 +744,7 @@ namespace petti.Controllers
         // POST: /Admin/DeleteReview/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteReview(int id)
         {
             var review = await _context.Reviews.FindAsync(id);
@@ -733,6 +760,7 @@ namespace petti.Controllers
         // GET: /Admin/Testimonials
         
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Testimonials()
         {
             var testimonials = await _context.Testimonials
@@ -750,13 +778,14 @@ namespace petti.Controllers
         // POST: /Admin/ModerateTestimonial
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ModerateTestimonial(int id, string status)
         {
             var item = await _context.Testimonials.FindAsync(id);
             if (item == null) return Json(new { success = false, message = "Testimonial not found." });
 
             item.Status = status;
-            item.IsFeatured = (status == "Approved"); // تفعيل ظهورها على الهوم بيج فوراً عند القبول
+            item.IsFeatured = (status == "Approved");
             await _context.SaveChangesAsync();
 
             var pending = await _context.Testimonials.CountAsync(t => t.Status == "Pending");
@@ -769,6 +798,7 @@ namespace petti.Controllers
         // POST: /Admin/DeleteTestimonial/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteTestimonial(int id)
         {
             var item = await _context.Testimonials.FindAsync(id);

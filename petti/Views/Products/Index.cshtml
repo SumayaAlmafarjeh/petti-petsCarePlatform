@@ -1,22 +1,12 @@
 ﻿@model IEnumerable<petti.Models.ViewModels.ProductCardViewModel>
 @using petti.Models
 @{
-    ViewData["Title"] = "Shop Pet Essentials";
+    ViewData["Title"] = "Shop petti products";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var categories = ViewBag.Categories as List<Category> ?? new List<Category>();
 }
 
-<header class="page-header">
-    <div class="container-petti">
-        <div class="breadcrumb-petti">
-            <a asp-controller="Home" asp-action="Index">Home</a>
-            <i class="fa-solid fa-chevron-right" style="font-size:0.65rem;"></i>
-            <span>Shop</span>
-        </div>
-        <h1>Shop Pet Essentials</h1>
-        <p style="margin:0; color:var(--ink-soft);">Food, toys, hygiene and health items ,delivered alongside your next home visit.</p>
-    </div>
-</header>
+<div class="nav-clearance-tight"></div>
 
 <section class="section-tight">
     <div class="container-petti">
@@ -84,10 +74,10 @@
                     </div>
                     <span class="result-count" id="resultCount">@Model.Count() products</span>
                     <select class="sort-select" id="sortSelect">
-                        <option value="newest">Newest</option>
+                        
                         <option value="price-asc">Price: Low to High</option>
                         <option value="price-desc">Price: High to Low</option>
-                        <option value="rating">Top Rated</option>
+                       
                     </select>
                 </div>
 
@@ -103,21 +93,42 @@
                              data-stock="@(p.StockQuantity > 0 ? "in" : "out")"
                              data-rating="@p.AverageRating">
                             <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden product-card" style="background:#fff;">
-                                <div class="position-relative text-center p-3" style="background: #FAF9F6;">
-                                    <img src="@p.ImageUrl" alt="@p.Name" class="img-fluid" style="height: 180px; object-fit: contain;">
-                                    <span class="badge position-absolute top-0 start-0 m-3 bg-white text-dark shadow-sm rounded-pill px-2 py-1 small">
-                                        @p.CategoryName
-                                    </span>
-                                </div>
+                                
+                                <!-- Product Image Linked to Details -->
+                               <div class="product-media position-relative">
+    <a asp-controller="Products" asp-action="Details" asp-route-id="@p.ProductId" class="d-block h-100">
+        <img src="@p.ImageUrl" alt="@p.Name" style="cursor:pointer;">
+    </a>
+    <span class="badge position-absolute top-0 start-0 m-3 bg-white text-dark shadow-sm rounded-pill px-2 py-1 small">
+        @p.CategoryName
+    </span>
+</div>
 
                                 <div class="card-body d-flex flex-column p-3">
-                                    <div class="d-flex align-items-center gap-1 small text-warning mb-1">
-                                        <i class="fa-solid fa-star"></i>
-                                        <span class="text-dark fw-bold">@p.AverageRating.ToString("0.0")</span>
-                                        <span class="text-muted">(@p.ReviewsCount)</span>
+                                    <!-- Dynamic Rating: Shows real rating or Clean Badge -->
+                                    <div class="mb-2" style="min-height: 22px;">
+                                        @if (p.ReviewsCount > 0)
+                                        {
+                                            <div class="d-flex align-items-center gap-1 small text-warning">
+                                                <i class="fa-solid fa-star"></i>
+                                                <span class="text-dark fw-bold">@p.AverageRating.ToString("0.0")</span>
+                                                <span class="text-muted">(@p.ReviewsCount)</span>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge rounded-pill bg-light text-muted border px-2 py-1" style="font-size: 0.72rem; font-weight: 500;">
+                                                <i class="fa-regular fa-sparkles me-1 text-sunbeam"></i> New arrival
+                                            </span>
+                                        }
                                     </div>
 
-                                    <h3 class="h6 card-title mb-1 text-truncate" title="@p.Name">@p.Name</h3>
+                                    <!-- Product Title Linked to Details -->
+                                    <h3 class="h6 card-title mb-1 text-truncate" title="@p.Name">
+                                        <a asp-controller="Products" asp-action="Details" asp-route-id="@p.ProductId" class="text-decoration-none text-dark d-block">
+                                            @p.Name
+                                        </a>
+                                    </h3>
                                     <p class="text-muted small text-truncate-2 mb-3" style="min-height: 38px;">@p.Description</p>
 
                                     <div class="mt-auto d-flex align-items-center justify-content-between pt-2 border-top">
@@ -126,7 +137,8 @@
                                                 data-id="@p.ProductId"
                                                 data-name="@p.Name"
                                                 data-price="@p.Price"
-                                                data-img="@p.ImageUrl">
+                                                data-img="@p.ImageUrl"
+                                                onclick="event.stopPropagation();">
                                             <i class="fa-solid fa-cart-plus"></i> Add
                                         </button>
                                     </div>
@@ -226,6 +238,72 @@
 
         document.addEventListener('input', (e) => {
             if (e.target.id === 'catalogSearch') renderCatalog();
+        });
+
+       
+        function showShopToast(title, priceText, imgSrc) {
+            const toast = document.getElementById('cartToast');
+            if (!toast) return;
+
+            const toastImg = document.getElementById('toastImg');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastPrice = document.getElementById('toastPrice');
+
+            if (toastImg) toastImg.src = imgSrc || '/images/placeholder-product.png';
+            if (toastTitle) toastTitle.textContent = title;
+            if (toastPrice) toastPrice.textContent = priceText;
+
+            toast.classList.add('show');
+
+            if (window._shopToastTimeout) clearTimeout(window._shopToastTimeout);
+            window._shopToastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        document.getElementById('toastClose')?.addEventListener('click', () => {
+            document.getElementById('cartToast')?.classList.remove('show');
+        });
+
+        document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+            btn.addEventListener('click', async function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const button = this;
+                const productId = button.dataset.id;
+                const productName = button.dataset.name;
+                const productPrice = button.dataset.price;
+                const productImg = button.dataset.img;
+
+                button.disabled = true;
+                const originalHtml = button.innerHTML;
+                button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+                const formData = new FormData();
+                formData.append('productId', productId);
+                formData.append('quantity', 1);
+
+                try {
+                    const res = await fetch('/Cart/AddToCart', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await res.json();
+                    if (data.success) {
+                        const badge = document.getElementById('cartBadge');
+                        if (badge) badge.textContent = data.itemsCount;
+
+                        showShopToast(productName, `${parseFloat(productPrice).toFixed(2)} JOD`, productImg);
+                    }
+                } catch (err) {
+                    console.error("Cart add error:", err);
+                } finally {
+                    button.disabled = false;
+                    button.innerHTML = originalHtml;
+                }
+            });
         });
     </script>
 }

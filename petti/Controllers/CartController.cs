@@ -32,8 +32,7 @@ namespace petti.Controllers
             HttpContext.Session.SetObjectAsJson(CartSessionKey, cart);
         }
 
-        // GET: /Cart
-        [Authorize]
+        // GET: /Cart 
         [HttpGet]
         public IActionResult Index()
         {
@@ -42,8 +41,7 @@ namespace petti.Controllers
             return View(model);
         }
 
-        // GET: /Cart/GetSummary
-        [Authorize]
+        // GET: /Cart/GetSummary 
         [HttpGet]
         public IActionResult GetSummary()
         {
@@ -58,8 +56,7 @@ namespace petti.Controllers
             });
         }
 
-        // POST: /Cart/AddToCart
-        [Authorize]
+        // POST: /Cart/AddToCart 
         [HttpPost]
         public async Task<IActionResult> AddToCart(int productId, int quantity = 1)
         {
@@ -103,7 +100,6 @@ namespace petti.Controllers
         }
 
         // POST: /Cart/UpdateQuantity
-        [Authorize]
         [HttpPost]
         public IActionResult UpdateQuantity(int productId, int quantity)
         {
@@ -127,8 +123,7 @@ namespace petti.Controllers
             });
         }
 
-        // POST: /Cart/RemoveItem
-        [Authorize]
+        // POST: /Cart/RemoveItem 
         [HttpPost]
         public IActionResult RemoveItem(int productId)
         {
@@ -146,7 +141,7 @@ namespace petti.Controllers
             });
         }
 
-        // GET: /Cart/Checkout
+        // GET: /Cart/Checkout here we request signin
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> Checkout()
@@ -180,7 +175,6 @@ namespace petti.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
-            // إزالة التحقق من Cart داخل ModelState لأنها لا تُرسل من الفورم
             ModelState.Remove("Cart");
 
             if (!ModelState.IsValid)
@@ -191,7 +185,6 @@ namespace petti.Controllers
 
             var cartDrawer = new CartDrawerViewModel { Items = cart };
 
-            // 1. إنشاء وحفظ الطلب
             var order = new Order
             {
                 CustomerId = user.Id,
@@ -214,7 +207,6 @@ namespace petti.Controllers
 
             _context.Orders.Add(order);
 
-            // 2. تحديث مخزون المنتجات
             foreach (var item in cart)
             {
                 var product = await _context.Products.FindAsync(item.ProductId);
@@ -224,13 +216,10 @@ namespace petti.Controllers
                 }
             }
 
-            // حفظ كل التغييرات وتوليد OrderId حقيقي
             await _context.SaveChangesAsync();
 
-            // 3. تفريغ السلة من الـ Session
             HttpContext.Session.Remove(CartSessionKey);
 
-            // 4. التوجيه لصفحة النجاح برقم الطلب الحقيقي
             return RedirectToAction(nameof(OrderSuccess), new { orderId = order.OrderId });
         }
 

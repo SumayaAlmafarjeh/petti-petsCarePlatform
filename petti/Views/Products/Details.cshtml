@@ -24,6 +24,7 @@
     int pct1 = reviewsCount > 0 ? (int)Math.Round((double)r1 / reviewsCount * 100) : 0;
 
     bool canReview = ViewBag.CanReview == true;
+    bool isAvailable = Model.StockQuantity > 0;
 }
 
 <section class="section" style="padding-top:8.5rem; padding-bottom:5rem;">
@@ -76,9 +77,26 @@
 
             <!-- Right: Product Info -->
             <div class="col-lg-6">
-                <div class="badge rounded-pill bg-light text-dark border px-3 py-1 mb-2 fw-semibold">
-                    @(Model.Category?.Name ?? "Essentials") · @(Model.TargetPetType ?? "All Pets")
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge rounded-pill bg-light text-dark border px-3 py-1 fw-semibold">
+                        @(Model.Category?.Name ?? "Essentials") · @(Model.TargetPetType ?? "All Pets")
+                    </span>
+
+                    <!-- Stock Status Badge (Without showing exact quantity) -->
+                    @if (isAvailable)
+                    {
+                        <span class="badge rounded-pill bg-success-subtle text-success border px-3 py-1 fw-semibold">
+                            <i class="fa-solid fa-circle-check me-1"></i> In Stock
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge rounded-pill bg-danger-subtle text-danger border px-3 py-1 fw-semibold">
+                            <i class="fa-solid fa-circle-xmark me-1"></i> Out of Stock
+                        </span>
+                    }
                 </div>
+
                 <h1 class="fw-bold mb-2" style="font-size: 2.1rem; color: var(--ink);">@Model.Name</h1>
 
                 <!-- Rating Section (Top) -->
@@ -102,17 +120,6 @@
                     }
                 </div>
 
-                <!-- Stock Bar -->
-                <div class="mb-3">
-                    <div class="progress rounded-pill" style="height: 6px; max-width: 320px; background-color: #E2E8F0;">
-                        <div class="progress-bar rounded-pill" role="progressbar"
-                             style="width: @(Model.StockQuantity > 0 ? "75%" : "0%"); background-color: @(Model.StockQuantity > 0 ? "var(--berry)" : "#EF4444");"></div>
-                    </div>
-                    <span class="small text-muted mt-1 d-block">
-                        @(Model.StockQuantity > 0 ? $"{Model.StockQuantity} in stock" : "Out of stock")
-                    </span>
-                </div>
-
                 <!-- Price -->
                 <div class="my-4">
                     <span class="fw-bold fs-2" style="color: var(--berry);">@Model.Price.ToString("0.00") JOD</span>
@@ -126,8 +133,8 @@
                         <button type="button" class="btn btn-sm border-0 p-0 text-muted px-2" onclick="changeQty(1)">+</button>
                     </div>
 
-                    <button type="button" class="btn-petti btn-berry add-cart-btn-details flex-grow-1 justify-content-center py-2 fs-6"
-                            data-id="@Model.ProductId" data-name="@Model.Name" data-price="@Model.Price" data-img="@imagesList[0]">
+                    <button type="button" class="btn-petti btn-berry add-cart-btn-details flex-grow-1 justify-content-center py-2 fs-6 @(!isAvailable ? "disabled opacity-50" : "")"
+                            data-id="@Model.ProductId" data-name="@Model.Name" data-price="@Model.Price" data-img="@imagesList[0]" @(!isAvailable ? "disabled" : "")>
                         <i class="fa-solid fa-bag-shopping me-2"></i> Add to Cart
                     </button>
                 </div>
@@ -368,13 +375,17 @@
             el.value = val;
         }
 
-        // Add to cart from Details
+        // Add to cart from Details with Petti Toast
         document.querySelector('.add-cart-btn-details')?.addEventListener('click', function () {
-            const id = this.dataset.id;
-            const name = this.dataset.name;
-            const price = this.dataset.price;
-            const img = this.dataset.img;
+            const btn = this;
+            const id = btn.dataset.id;
+            const name = btn.dataset.name;
+            const price = parseFloat(btn.dataset.price);
+            const img = btn.dataset.img;
             const qty = parseInt(document.getElementById('pQty').value) || 1;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Adding...';
 
             const formData = new FormData();
             formData.append('productId', id);
@@ -386,13 +397,41 @@
                     if (data.success) {
                         const badge = document.getElementById('cartBadge');
                         if (badge) badge.textContent = data.itemsCount;
-                        if (window.pettiShowToast) {
-                            window.pettiShowToast(name, `${(parseFloat(price) * qty).toFixed(2)} JOD`, img);
-                        } else {
-                            alert('Added to cart!');
-                        }
+                        showPettiToast(name, `${(price * qty).toFixed(2)} JOD`, img);
                     }
+                })
+                .catch(() => {
+                    console.error('Error adding to cart');
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-bag-shopping me-2"></i> Add to Cart';
                 });
+        });
+
+        // Toast Notification Trigger
+        function showPettiToast(title, priceText, imgSrc) {
+            const toast = document.getElementById('cartToast');
+            if (!toast) return;
+
+            const toastImg = document.getElementById('toastImg');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastPrice = document.getElementById('toastPrice');
+
+            if (toastImg) toastImg.src = imgSrc || '/images/placeholder-product.png';
+            if (toastTitle) toastTitle.textContent = title;
+            if (toastPrice) toastPrice.textContent = priceText;
+
+            toast.classList.add('show');
+
+            if (window._cartToastTimeout) clearTimeout(window._cartToastTimeout);
+            window._cartToastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        document.getElementById('toastClose')?.addEventListener('click', () => {
+            document.getElementById('cartToast')?.classList.remove('show');
         });
 
         // Tabs Logic (Description & Reviews only)

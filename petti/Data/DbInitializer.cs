@@ -7,12 +7,10 @@ namespace petti.Data
     {
         public static async Task SeedAsync(ApplicationDbContext context)
         {
-            // 1. التأكد من تطبيق كل الـ Migrations
+           
             await context.Database.MigrateAsync();
 
-            // =========================================================================
-            // كود التحديث التلقائي: لتعديل Pet Sitting إلى Nail Trim فوراً في الداتابيز
-            // =========================================================================
+            
             var oldSittingService = await context.Services
                 .Include(s => s.Category)
                 .FirstOrDefaultAsync(s => s.Name == "Pet Sitting");
@@ -35,9 +33,7 @@ namespace petti.Data
                 await context.SaveChangesAsync();
             }
 
-            // =========================================================================
-            // إضافة آراء العملاء الحقيقية (Testimonials) بخصائص الموديل الصحيحة
-            // =========================================================================
+
             if (!await context.Testimonials.AnyAsync())
             {
                 var testimonials = new List<Testimonial>
@@ -78,12 +74,10 @@ namespace petti.Data
                 await context.SaveChangesAsync();
             }
 
-            // إذا كانت الفئات موجودة مسبقاً نتوقف هنا
+           
             if (await context.Categories.AnyAsync()) return;
 
-            // =========================================================================
-            // 2. إضافة الفئات (في حال كانت الداتابيز جديدة)
-            // =========================================================================
+
             var catFood = new Category { Name = "Food", Type = "Product", IconClass = "fa-bone", Description = "Nutritious pet food and treats" };
             var catToys = new Category { Name = "Toys", Type = "Product", IconClass = "fa-baseball", Description = "Enrichment toys and bundles" };
             var catGroomingProd = new Category { Name = "Grooming", Type = "Product", IconClass = "fa-scissors", Description = "Grooming brushes and gear" };
@@ -100,9 +94,7 @@ namespace petti.Data
             );
             await context.SaveChangesAsync();
 
-            // =========================================================================
-            // 3. إضافة الخدمات المنزلية
-            // =========================================================================
+
             var s1 = new Service
             {
                 Name = "Home Grooming",
@@ -139,9 +131,7 @@ namespace petti.Data
             await context.Services.AddRangeAsync(s1, s2, s3);
             await context.SaveChangesAsync();
 
-            // =========================================================================
-            // 4. إضافة المنتجات
-            // =========================================================================
+
             var products = new List<Product>
             {
                 new Product

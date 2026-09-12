@@ -170,7 +170,7 @@
             const search = searchInput.value.trim().toLowerCase();
             const cat = categorySelect.value;
 
-            // 1. حساب الصفوف المتطابقة مع الفلتر
+            
             visibleRows = allRows.filter(row => {
                 const name = row.dataset.name;
                 const category = row.dataset.category;
@@ -179,32 +179,32 @@
                 return matchesCat && matchesSearch;
             });
 
-            // إذا تغير الفلتر وأصبح رقم الصفحة الحالية أكبر من عدد الصفحات الجديد
+            
             const totalPages = Math.ceil(visibleRows.length / pageSize) || 1;
             if (currentPage > totalPages) currentPage = 1;
 
-            // 2. إخفاء جميع الصفوف أولاً
+           
             allRows.forEach(r => r.style.display = 'none');
 
-            // 3. إظهار الـ 10 صفوف الخاصة بالصفحة الحالية فقط
+           
             const start = (currentPage - 1) * pageSize;
             const end = start + pageSize;
             const pageRows = visibleRows.slice(start, end);
             pageRows.forEach(r => r.style.display = '');
 
-            // 4. تحديث نص الإحصائية
+            
             const startCount = visibleRows.length === 0 ? 0 : start + 1;
             const endCount = Math.min(end, visibleRows.length);
             paginationInfo.textContent = `Showing ${startCount} to ${endCount} of ${visibleRows.length} entries`;
 
-            // 5. بناء أزرار التبديل
+            
             renderPaginationButtons(totalPages);
         }
 
         function renderPaginationButtons(totalPages) {
             paginationControls.innerHTML = '';
 
-            // إذا كان المجموع 10 صفوف أو أقل، لا داعي لإظهار أزرار التنقل
+            
             if (visibleRows.length <= pageSize) {
                 paginationWrapper.style.display = visibleRows.length === 0 ? 'none' : 'flex';
                 return;
@@ -212,7 +212,7 @@
                 paginationWrapper.style.display = 'flex';
             }
 
-            // زر Previous
+            
             const prevBtn = document.createElement('button');
             prevBtn.type = 'button';
             prevBtn.className = `btn btn-sm btn-light border rounded-3 px-2 ${currentPage === 1 ? 'disabled opacity-50' : ''}`;
@@ -220,7 +220,7 @@
             prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; applyFilterAndPagination(); } };
             paginationControls.appendChild(prevBtn);
 
-            // أرقام الصفحات
+            
             for (let i = 1; i <= totalPages; i++) {
                 const pageBtn = document.createElement('button');
                 pageBtn.type = 'button';
@@ -231,7 +231,7 @@
                 paginationControls.appendChild(pageBtn);
             }
 
-            // زر Next
+           
             const nextBtn = document.createElement('button');
             nextBtn.type = 'button';
             nextBtn.className = `btn btn-sm btn-light border rounded-3 px-2 ${currentPage === totalPages ? 'disabled opacity-50' : ''}`;
@@ -243,10 +243,10 @@
         searchInput.addEventListener('input', () => { currentPage = 1; applyFilterAndPagination(); });
         categorySelect.addEventListener('change', () => { currentPage = 1; applyFilterAndPagination(); });
 
-        // تشغيل الترتيب عند تحميل الصفحة لأول مرة
+        
         applyFilterAndPagination();
 
-        // Modal Delete Handlers
+        
         const deleteModalEl = document.getElementById('deleteConfirmModal');
         const deleteModal = new bootstrap.Modal(deleteModalEl);
         const deleteForm = document.getElementById('deleteProductForm');

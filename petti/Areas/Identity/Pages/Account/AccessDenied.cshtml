@@ -1,0 +1,44 @@
+﻿@page
+@using Microsoft.AspNetCore.Mvc.RazorPages
+@model AccessDeniedModel
+@{
+    ViewData["Title"] = "Access Denied — Petti";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<section class="section" style="padding-top: 10rem; padding-bottom: 7rem; min-height: 80vh; display: flex; align-items: center;">
+    <div class="container-petti" style="max-width: 540px; margin: 0 auto; text-align: center;">
+
+        <div class="bg-white rounded-4 border shadow-sm p-5">
+            <!-- Icon -->
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-4"
+                 style="width: 80px; height: 80px; background-color: #FEF3C7; color: #D97706; font-size: 2.3rem;">
+                <i class="fa-solid fa-ban"></i>
+            </div>
+
+            <!-- Header -->
+            <h2 class="fw-bold mb-2" style="color: var(--ink); font-size: 1.8rem;">Access Denied</h2>
+
+            <p class="text-muted small mb-4" style="line-height: 1.6;">
+                Sorry, you do not have the required administrative permissions to access this control panel. This area is restricted to authorized administrators only.
+            </p>
+
+            <!-- Action Button -->
+            <div class="d-flex flex-column gap-2">
+                <a asp-controller="Home" asp-action="Index" class="btn-petti btn-berry w-100 justify-content-center py-2 text-decoration-none">
+                    <i class="fa-solid fa-house me-2"></i> Return to Homepage
+                </a>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+@functions {
+    public class AccessDeniedModel : PageModel
+    {
+        public void OnGet()
+        {
+        }
+    }
+}

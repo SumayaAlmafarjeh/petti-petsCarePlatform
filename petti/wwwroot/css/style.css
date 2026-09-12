@@ -1713,8 +1713,8 @@ a {
 }
 
     .address-option.selected {
-        border-color: var(--berry);
-        background: var(--berry-tint);
+        border-color: var(--royal);
+        background: var(--royal-tint);
     }
 
 .payment-option {
@@ -3280,3 +3280,13 @@ a {
         background: var(--berry-tint);
         color: var(--berry-deep) !important;
     }
+
+.nav-clearance-tight {
+    padding-top: 5.5rem;
+}
+
+@media (max-width: 767px) {
+    .nav-clearance-tight {
+        padding-top: 5rem;
+    }
+}

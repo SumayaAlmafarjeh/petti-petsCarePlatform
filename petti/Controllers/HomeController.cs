@@ -42,11 +42,17 @@ namespace petti.Controllers
                 })
                 .ToListAsync();
 
+            
             var products = await _context.Products
                 .AsNoTracking()
                 .Where(p => p.IsActive)
                 .Include(p => p.Category)
                 .Include(p => p.Images)
+                .Include(p => p.Reviews)
+                .OrderByDescending(p => _context.OrderItems
+                    .Where(oi => oi.ProductId == p.ProductId)
+                    .Sum(oi => (int?)oi.Quantity) ?? 0)
+                .ThenByDescending(p => p.CreatedAt)
                 .Take(8)
                 .Select(p => new HomeProductItemViewModel
                 {
@@ -56,8 +62,8 @@ namespace petti.Controllers
                     StockQuantity = p.StockQuantity,
                     CategoryName = p.Category != null ? p.Category.Name : "General",
                     ImageUrl = p.Images.Select(i => i.ImageUrl).FirstOrDefault() ?? "/images/placeholder-product.png",
-                    AverageRating = 4.9,
-                    ReviewsCount = 18
+                    AverageRating = p.Reviews.Any() ? p.Reviews.Average(r => r.Rating) : 5.0,
+                    ReviewsCount = p.Reviews.Count
                 })
                 .ToListAsync();
 
@@ -68,7 +74,7 @@ namespace petti.Controllers
                 .Take(3)
                 .ToListAsync();
 
-            // فحص شرط إضافة التقييم: تسجيل الدخول ووجود طلب أو حجز مسبق
+            
             bool canSubmit = false;
             if (_signInManager.IsSignedIn(User))
             {
@@ -108,7 +114,7 @@ namespace petti.Controllers
                 return Json(new { success = false, message = "User not found." });
             }
 
-            // التأكد من وجود طلبات أو حجوزات سابقة
+            
             var hasOrders = await _context.Orders.AnyAsync(o => o.CustomerId == user.Id);
             var hasBookings = await _context.Bookings.AnyAsync(b => b.CustomerId == user.Id);
 
@@ -122,7 +128,7 @@ namespace petti.Controllers
                 return Json(new { success = false, message = "Please write your feedback before submitting." });
             }
 
-            // توليد صفة الحيوان الأليف تلقائياً من بروفايل المستخدم إن وُجدت
+            
             string petDetails = "Verified Pet Parent";
             if (!string.IsNullOrWhiteSpace(user.PetName))
             {

@@ -1,6 +1,6 @@
 ﻿@model petti.Models.ViewModels.CartDrawerViewModel
 @{
-    ViewData["Title"] = "Your Cart — Petti";
+    ViewData["Title"] = "Your Cart Petti";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -54,17 +54,11 @@
                 <div class="summary-card">
                     <h3 style="margin-bottom:1.2rem;">Order Summary</h3>
 
-                    <div class="promo-row">
-                        <input type="text" class="form-control-petti" id="promoInput" placeholder="Promo code">
-                        <button type="button" class="btn-petti btn-ink-outline btn-sm" id="applyPromoBtn">Apply</button>
-                    </div>
-                    <div class="promo-valid" id="promoValid"><i class="fa-solid fa-circle-check"></i> PETTI10 applied — 10% off</div>
-
                     <div style="margin-top:1.4rem;">
                         <div class="summary-row"><span>Subtotal</span><span id="sumSubtotal">@Model.Subtotal.ToString("0.00") JOD</span></div>
                         <div class="summary-row"><span>Amman delivery fee</span><span id="sumDelivery">@Model.DeliveryFee.ToString("0.00") JOD</span></div>
                         <div class="summary-row"><span>Estimated tax (4%)</span><span id="sumTax">@Model.Tax.ToString("0.00") JOD</span></div>
-                        <div class="summary-row"><span>Discount</span><span id="sumDiscount">− @Model.DiscountAmount.ToString("0.00") JOD</span></div>
+                        
                         <div class="summary-row total"><span>Total</span><span id="sumTotal">@Model.GrandTotal.ToString("0.00") JOD</span></div>
                     </div>
 

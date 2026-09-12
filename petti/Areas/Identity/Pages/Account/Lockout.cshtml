@@ -1,0 +1,59 @@
+﻿@page
+@using Microsoft.AspNetCore.Mvc.RazorPages
+@model LockoutModel
+@{
+    ViewData["Title"] = "Account Suspended — Petti";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<section class="section" style="padding-top: 10rem; padding-bottom: 7rem; min-height: 80vh; display: flex; align-items: center;">
+    <div class="container-petti" style="max-width: 540px; margin: 0 auto; text-align: center;">
+
+        <div class="bg-white rounded-4 border shadow-sm p-5">
+            <!-- Icon -->
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-4"
+                 style="width: 80px; height: 80px; background-color: #FEE2E2; color: #DC2626; font-size: 2.3rem;">
+                <i class="fa-solid fa-user-lock"></i>
+            </div>
+
+            <!-- Header -->
+            <h2 class="fw-bold mb-2" style="color: var(--ink); font-size: 1.8rem;">Account Suspended</h2>
+
+            <p class="text-muted small mb-4" style="line-height: 1.6;">
+                This account has been temporarily deactivated or locked out by administration. If you believe this is a mistake, please contact our doorstep support team.
+            </p>
+
+            <!-- Support Details -->
+            <div class="p-3 bg-light rounded-3 text-start small border mb-4">
+                <div class="d-flex align-items-center gap-2 mb-2 text-dark">
+                    <i class="fa-solid fa-envelope text-berry"></i>
+                    <span>support@petti.jo</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 text-dark">
+                    <i class="fa-solid fa-phone text-berry"></i>
+                    <span>+962 7 9000 0000 (Amman, Jordan)</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex flex-column gap-2">
+                <a asp-controller="Home" asp-action="Index" class="btn-petti btn-berry w-100 justify-content-center py-2 text-decoration-none">
+                    <i class="fa-solid fa-house me-2"></i> Return to Homepage
+                </a>
+                <a asp-area="Identity" asp-page="/Account/Login" class="btn-petti btn-ink-outline w-100 justify-content-center py-2 text-decoration-none">
+                    Try Another Account
+                </a>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+@functions {
+    public class LockoutModel : PageModel
+    {
+        public void OnGet()
+        {
+        }
+    }
+}

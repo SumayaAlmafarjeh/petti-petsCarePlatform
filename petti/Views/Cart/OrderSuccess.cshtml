@@ -1,6 +1,6 @@
 ﻿@model petti.Models.Order
 @{
-    ViewData["Title"] = "Order Confirmed — Petti";
+    ViewData["Title"] = "Order Confirmed Petti";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
     var itemsSubtotal = Model.OrderItems.Sum(i => i.UnitPrice * i.Quantity);

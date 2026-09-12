@@ -2,7 +2,7 @@
 
 
 <p align="center">
-  <img src="wwwroot/images/logo.png" alt="Petti Logo" width="200"/>
+  <img src="petti/wwwroot/images/logo.png" alt="Petti Logo" width="200"/>
 </p>
 
 <p align="center">
